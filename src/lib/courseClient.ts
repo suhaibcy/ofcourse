@@ -35,8 +35,17 @@ export async function buildCourse(input: { photos: string[]; text: string; goal:
 
 export type ExplainResult = { transcript: string; covered: { point: number; quote: string }[] }
 
-export function checkExplanation(wav: ArrayBuffer, prompt: string, points: string[]): Promise<ExplainResult> {
+function toBase64(wav: ArrayBuffer): string {
   let binary = ''
   new Uint8Array(wav).forEach((byte) => { binary += String.fromCharCode(byte) })
-  return post<ExplainResult>('/api/explain', { audio: btoa(binary), prompt, points })
+  return btoa(binary)
+}
+
+export function checkExplanation(wav: ArrayBuffer, prompt: string, points: string[]): Promise<ExplainResult> {
+  return post<ExplainResult>('/api/explain', { audio: toBase64(wav), prompt, points })
+}
+
+export async function transcribeClip(wav: ArrayBuffer): Promise<string> {
+  const { transcript } = await post<{ transcript: string }>('/api/say', { audio: toBase64(wav) })
+  return transcript
 }

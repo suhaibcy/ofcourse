@@ -43,15 +43,7 @@ export async function transcribe(wav: Buffer, keywords: string[]): Promise<strin
   form.append('audio', new Blob([new Uint8Array(wav)], { type: 'audio/wav' }), 'recording.wav')
   const response = await fetch(`${BASE}/asr/transcribe`, { method: 'POST', headers: headers(), body: form, signal: AbortSignal.timeout(TIMEOUT_MS) })
   if (!response.ok) throw new Error(`Transcription error ${response.status}`)
-  const data = await response.json() as Record<string, unknown>
-  return findTranscript(data)
-}
-
-// Pull the text out of the response. Meta's docs show the request but not this
-// response's exact shape, so check the usual field names. Confirm on the first real call.
-function findTranscript(data: Record<string, unknown>): string {
-  for (const key of ['text', 'transcript']) {
-    if (typeof data[key] === 'string') return data[key]
-  }
-  throw new Error('Transcription response had no text')
+  const data = await response.json() as { transcript?: string }
+  if (typeof data.transcript !== 'string') throw new Error('Transcription response had no text')
+  return data.transcript
 }

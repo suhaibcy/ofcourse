@@ -65,7 +65,22 @@ export type ExplainBlock = {
   points: string[]
 }
 
-export type Block = StepBlock | SandboxBlock | OrderBlock | SpotBlock | SortBlock | CalcBlock | ExplainBlock
+// Say each word out loud, which unlocks Hoot Flight: your voice flies him through
+// letter rings to spell the last word.
+export type VoiceBlock = {
+  type: 'voice'; id: string; conceptId: string
+  prompt: string
+  words: { word: string; syllables: string[] }[]
+}
+
+// Slide Hoot to catch the right answers and dodge the wrong ones.
+export type CatchBlock = {
+  type: 'catch'; id: string; conceptId: string
+  prompt: string
+  items: { text: string; good: boolean; why: string }[]
+}
+
+export type Block = StepBlock | SandboxBlock | OrderBlock | SpotBlock | SortBlock | CalcBlock | ExplainBlock | VoiceBlock | CatchBlock
 
 export type SourceRef = { photo: number; quote: string } // where in the coursework this came from
 

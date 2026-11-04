@@ -87,7 +87,7 @@ test('a course with too little left is refused, not shown', async () => {
 })
 
 test('explain it back keeps only quotes the student really said', async () => {
-  replies = [{ text: 'Positive means two solutions.' }, { covered: [{ point: 0, quote: 'positive means two solutions' }, { point: 1, quote: 'never said this' }] }]
+  replies = [{ transcript: 'Positive means two solutions.' }, { covered: [{ point: 0, quote: 'positive means two solutions' }, { point: 1, quote: 'never said this' }] }]
   const result = await handleRoute('explain', 'POST', { audio: 'AAAA', prompt: 'p', points: ['a', 'b'] }, 'v6')
   assert.deepEqual((result.json as { covered: unknown[] }).covered, [{ point: 0, quote: 'positive means two solutions' }])
 })

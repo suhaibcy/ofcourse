@@ -51,6 +51,20 @@ export function checkBlock(block: Block): string[] {
     case 'explain':
       if (block.points.length < 2) problems.push('needs at least 2 points')
       break
+    case 'voice':
+      if (block.words.length < 1 || block.words.length > 5) problems.push('voice needs 1 to 5 words')
+      for (const { word, syllables } of block.words) {
+        if (!/^[a-zA-Z]{2,12}$/.test(word)) problems.push(`"${word}" must be one word of 2 to 12 letters`)
+        if (syllables.join('').toLowerCase() !== word.toLowerCase()) problems.push(`syllables don't spell "${word}"`)
+      }
+      break
+    case 'catch': {
+      const good = block.items.filter((item) => item.good).length
+      if (good < 3 || block.items.length - good < 2) problems.push('catch needs at least 3 right and 2 wrong items')
+      if (block.items.some((item) => item.text.length > 40)) problems.push('catch items must be 40 characters or fewer')
+      if (block.items.some((item) => !item.why.trim())) problems.push('catch item has no explanation')
+      break
+    }
   }
   return problems
 }

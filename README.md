@@ -14,7 +14,7 @@ For students 18 and older.
 
 New during the hackathon:
 - The course engine, checks, and mastery tracking (`src/lib/course*.ts`, `formula.ts`, `mastery.ts`)
-- Seven interactive lesson types (`src/components/blocks/`)
+- Nine interactive lesson types, including voice-controlled and arcade games (`src/components/blocks/`, `src/lib/voiceGame.ts`, `src/lib/mic.ts`)
 - The Courses screens (`src/screens/LearnScreen.tsx`, `CoursePlayer.tsx`, `src/styles/learn.css`)
 - The Meta model pipeline (`server/`, `api/`)
 
@@ -43,9 +43,11 @@ A course map you can play, with a Fix it round built from what you missed
 ### The lesson types
 | Type | What you do |
 |---|---|
+| Say it and Fly | Say hard words from your coursework out loud (Muse Voice Transcribe listens) to unlock Hoot Flight, where the volume of your voice flies Hoot through letter rings to spell the word |
+| Catch it | Slide Hoot to catch the right answers and dodge the wrong ones |
+| Build the bridge | Tap the steps of a process in order. Each right step lays a plank for Hoot to cross |
 | Step-through | Solve a problem one decision at a time, with an explanation for each wrong turn |
 | Sandbox | Move sliders until your live curve lands on the target |
-| Put in order | Drag the steps of a process into place |
 | Spot the mistake | Tap the line where a worked solution goes wrong |
 | Sort it | Tap each item into the right group |
 | Calculate | Type a number; code runs the formula to get the answer |
@@ -60,7 +62,9 @@ A course map you can play, with a Fix it round built from what you missed
 
 ## Meta models used
 - `muse-spark-1.3`: reading coursework, designing courses, independently solving questions, checking explanations
-- `muse-voice-transcribe-1.0`: Explain it back
+- `muse-voice-transcribe-1.0`: Say it and Fly, Explain it back
+
+The volume control in Hoot Flight runs on the device, and that audio isn't uploaded. A spoken word counts when the transcript contains that exact word. The API has no per-sound scores, so the game shows what it heard rather than claiming a pronunciation score.
 
 ## Run it
 ```

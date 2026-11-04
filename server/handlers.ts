@@ -16,7 +16,7 @@ const MAX_PHOTOS = 5
 const MAX_PHOTO_CHARS = 850_000 // keeps a full request under Vercel's 4.5 MB limit
 const MAX_TEXT_CHARS = 20_000
 const MAX_AUDIO_CHARS = 4_000_000 // about 60 seconds of WAV
-const REQUESTS_PER_HOUR = 40
+const REQUESTS_PER_HOUR = 120 // each spoken word in a game is one request
 
 // A basic per-visitor limit. Each server instance counts on its own, so it slows
 // abuse rather than stopping it. AI_ENABLED is the real off switch.
@@ -47,6 +47,9 @@ Use a variety of blocks, choosing what fits the subject:
 - sort: 2 or 3 groups; bucket counts from 0.
 - calc: only for a numeric answer. Give a formula and its values; our code calculates the answer, so never state it.
 - explain: include one per course; list 2 to 4 points a good spoken explanation should cover.
+- voice: START the course with this. 1 to 4 important or hard-to-say words from the coursework, each a single word of 2 to 12 letters, split into syllables that join back into exactly the word. Saying them unlocks a game where the student's voice flies Hoot through letter rings to spell the last word.
+- catch: an arcade game. Falling items of at most 40 characters; good ones get caught and bad ones dodged. At least 3 good and 2 bad, each with a short "why". Use at least one per course.
+Favor the games (voice, catch, sandbox, order) over plain questions so the course feels playful, while still teaching the coursework.
 Formulas may only use numbers, + - * / ^ ( ), the named variables, and sin cos tan sqrt log log2 log10 exp abs pi e.
 HONESTY RULE: Never reuse a problem from originalProblems. Every problem must be new practice, using different values and wording, that teaches the same method. This must never answer the student's actual assignment.
 Each lesson's source must quote the coursework concept it builds on. Every conceptId must match an id in concepts. Do not include medical, legal, or diagnostic advice. Write clearly and warmly, with no filler.`
@@ -123,6 +126,13 @@ async function explain(body: { audio?: unknown; prompt?: unknown; points?: unkno
   return { status: 200, json: { transcript, covered: provenCovered(transcript, covered, points.length) } }
 }
 
+// One spoken word for Say it and Fly. No keyword hints here: a hint nudges the
+// model toward the expected word, which would hide a mistake.
+async function say(body: { audio?: unknown }): Promise<Result> {
+  if (typeof body.audio !== 'string' || body.audio.length > MAX_AUDIO_CHARS) return fail(400, 'That recording could not be used.')
+  return { status: 200, json: { transcript: await transcribe(Buffer.from(body.audio, 'base64'), []) } }
+}
+
 export async function handleRoute(route: string, method: string | undefined, body: Record<string, unknown>, visitor: string): Promise<Result> {
   if (route === 'status') return { status: 200, json: { ai: aiEnabled() } }
   if (method !== 'POST') return fail(405, 'Use POST.')
@@ -130,6 +140,7 @@ export async function handleRoute(route: string, method: string | undefined, bod
   if (overLimit(visitor)) return fail(429, 'That is a lot of requests. Please try again in a while.')
   try {
     if (route === 'explain') return await explain(body)
+    if (route === 'say') return await say(body)
     if (body.action === 'read') return await read(body)
     if (body.action === 'design') return await design(body as { reading?: Reading; goal?: unknown })
     if (body.action === 'verify') return await verify(body as { course?: Course; reading?: Reading })

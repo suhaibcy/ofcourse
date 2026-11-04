@@ -51,6 +51,16 @@ test('impossible blocks are caught', () => {
     sliders: [{ name: 'a', label: 'a', min: 0, max: 1, step: 0.1, value: 0 }], target: { a: 5 }, explain: '' }).length > 0)
 })
 
+test('voice words must match their syllables, and a catch game needs both kinds of item', () => {
+  const voice = (word: string, syllables: string[]): Block => ({ type: 'voice', id: 'v', conceptId: 'c', prompt: 'p', words: [{ word, syllables }] })
+  assert.deepEqual(checkBlock(voice('vertex', ['ver', 'tex'])), [])
+  assert.ok(checkBlock(voice('vertex', ['ver', 'tax'])).length > 0)
+  assert.ok(checkBlock(voice('two words', ['two', ' words'])).length > 0)
+  const item = (good: boolean) => ({ text: 't', good, why: 'w' })
+  assert.deepEqual(checkBlock({ type: 'catch', id: 'k', conceptId: 'c', prompt: 'p', items: [item(true), item(true), item(true), item(false), item(false)] }), [])
+  assert.ok(checkBlock({ type: 'catch', id: 'k', conceptId: 'c', prompt: 'p', items: [item(true), item(true), item(true)] }).length > 0)
+})
+
 test('a copied homework problem is rejected, new numbers are not', () => {
   assert.equal(isCopy('Solve x^2 - 5x + 6 = 0', 'solve x^2 - 5x + 6 = 0.'), true)
   assert.equal(isCopy('Solve x^2 - 7x + 12 = 0', 'Solve x^2 - 5x + 6 = 0'), false)

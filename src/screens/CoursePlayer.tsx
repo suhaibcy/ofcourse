@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { BackHeader } from '../components/BackHeader'
 import { CalcIt } from '../components/blocks/CalcIt'
+import { CatchIt } from '../components/blocks/CatchIt'
+import { SayAndFly } from '../components/blocks/SayAndFly'
 import { ExplainBack } from '../components/blocks/ExplainBack'
 import { PutInOrder } from '../components/blocks/PutInOrder'
 import { Sandbox } from '../components/blocks/Sandbox'
@@ -18,6 +20,24 @@ type PlayerProps = {
   aiOn: boolean
   onResult: (blockId: string, firstTry: boolean) => void
   onExit: () => void
+}
+
+// The same burst as onboarding (the styles live in onboarding.css).
+const confettiPieces = [
+  { x: -118, y: -40, r: 200, c: 1 }, { x: -92, y: -70, r: -160, c: 3 }, { x: -48, y: -84, r: 240, c: 5 },
+  { x: 0, y: -80, r: -220, c: 7 }, { x: 46, y: -84, r: 180, c: 2 }, { x: 90, y: -72, r: -240, c: 4 },
+  { x: 120, y: -38, r: 160, c: 6 }, { x: -132, y: 0, r: -180, c: 4 }, { x: 134, y: 4, r: 220, c: 1 },
+]
+
+function Confetti() {
+  return (
+    <div className="confetti" aria-hidden="true">
+      {confettiPieces.map((p, i) => (
+        <span key={i} className={i % 3 === 0 ? 'confetti__piece confetti__piece--dot' : 'confetti__piece'}
+          style={{ '--x': `${p.x}px`, '--y': `${p.y}px`, '--r': `${p.r}deg`, background: `var(--class-${p.c})` } as CSSProperties} />
+      ))}
+    </div>
+  )
 }
 
 // Plays a list of blocks, one at a time. Used for lessons and for Fix it.
@@ -39,6 +59,7 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
   function miss() {
     setPose('oops')
     react('shake')
+    window.setTimeout(() => setPose((current) => (current === 'oops' ? 'idle' : current)), 1000) // he doesn't stay upset
   }
 
   function finish(firstTry: boolean) {
@@ -52,10 +73,18 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
   }
 
   if (finished) {
+    const share = blocks.length === 0 ? 0 : rightCount / blocks.length
+    const stars = share === 1 ? 3 : share >= 0.5 ? 2 : 1
     return (
       <div className="lesson-done">
-        <Hoot pose={pose} size={132} animate decorative reaction={reaction} />
-        <h1 className="screen-title">Lesson done</h1>
+        <div className="lesson-done__hoot">
+          <Hoot pose={pose} size={132} animate decorative reaction={reaction} />
+          <Confetti />
+        </div>
+        <p className="stars" aria-label={`${stars} of 3 stars`}>
+          {[1, 2, 3].map((n) => <span key={n} className={n <= stars ? 'star star--on' : 'star'} style={{ animationDelay: `${n * 150}ms` }}>★</span>)}
+        </p>
+        <h1 className="screen-title">Lesson done!</h1>
         <p className="muted">{rightCount} of {blocks.length} right on the first try.</p>
         <Button block onClick={onExit}>Back to the course</Button>
       </div>
@@ -85,6 +114,8 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
         {block.type === 'sort' && <SortIt block={block} {...shared} />}
         {block.type === 'calc' && <CalcIt block={block} {...shared} />}
         {block.type === 'explain' && <ExplainBack block={block} aiOn={aiOn} {...shared} />}
+        {block.type === 'voice' && <SayAndFly block={block} aiOn={aiOn} {...shared} />}
+        {block.type === 'catch' && <CatchIt block={block} {...shared} />}
       </div>
     </>
   )
