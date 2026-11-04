@@ -6,7 +6,7 @@ import { Icon } from '../components/Icon'
 import { sampleCourse } from '../data/sampleCourse'
 import type { Block, Course } from '../lib/course'
 import { aiAvailable, buildCourse, type BuildStage } from '../lib/courseClient'
-import { lessonDone, masteryByConcept, missedBlocks, recordResult, type Progress } from '../lib/mastery'
+import { lessonDone, masteryByConcept, missedBlocks, recordFix, recordResult, type Progress } from '../lib/mastery'
 import { shrinkImage } from '../lib/shrinkImage'
 import { newId, useStoredState } from '../lib/useStoredState'
 import { useAppData, type Note } from '../state/appDataContext'
@@ -195,7 +195,7 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
   if (view.name === 'fix') {
     return (
       <CoursePlayer key="fix" title="Fix it" intro="These are the ones that tripped you up. Try them again." blocks={view.blocks} aiOn={aiOn}
-        onResult={() => {}} onExit={() => setView({ name: 'course', courseId: course.id })} />
+        onResult={(blockId, firstTry) => setProgress((all) => ({ ...all, [course.id]: recordFix(all[course.id] ?? {}, blockId, firstTry) }))} onExit={() => setView({ name: 'course', courseId: course.id })} />
     )
   }
 
