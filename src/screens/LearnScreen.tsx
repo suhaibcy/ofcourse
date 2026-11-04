@@ -25,7 +25,7 @@ type View =
 const stages: { id: BuildStage; label: string }[] = [
   { id: 'reading', label: 'Reading your coursework' },
   { id: 'designing', label: 'Designing your lessons' },
-  { id: 'checking', label: 'Checking every answer' },
+  { id: 'checking', label: 'Double-checking the answers' },
 ]
 
 function noteText(note: Note): string {
@@ -59,7 +59,7 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
       <div className="learn-gate">
         <Hoot pose="hello" size={132} animate decorative />
         <h1 className="screen-title">Turn your coursework into a course</h1>
-        <p className="muted">Take a photo of your notes or practice work. Hoot builds interactive lessons from it, then checks every answer.</p>
+        <p className="muted">Take a photo of your notes or practice work. Hoot builds interactive lessons from it, then double-checks the answers.</p>
         <p className="muted">This feature is for students 18 and older.</p>
         <Button block onClick={() => setAdult(true)}>I'm 18 or older</Button>
         <Button block variant="ghost" onClick={onExit}>Not now</Button>
