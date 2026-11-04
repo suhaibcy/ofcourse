@@ -40,3 +40,4 @@ desktop.ini
 
 # Private study notes (their own private repo, never in this one)
 learn/
+.vercel

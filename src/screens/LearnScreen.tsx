@@ -8,6 +8,8 @@ import type { Block, Course } from '../lib/course'
 import { aiAvailable, buildCourse, type BuildStage } from '../lib/courseClient'
 import { lessonDone, masteryByConcept, missedBlocks, recordFix, recordResult, type Progress } from '../lib/mastery'
 import { shrinkImage } from '../lib/shrinkImage'
+import { toDateKey } from '../lib/dates'
+import { currentCount, playedToday, starsFor, type Streak } from '../lib/streak'
 import { newId, useStoredState } from '../lib/useStoredState'
 import { useAppData, type Note } from '../state/appDataContext'
 import { CoursePlayer } from './CoursePlayer'
@@ -38,6 +40,8 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
   const [adult, setAdult] = useStoredState('learn-adult-ok', false)
   const [courses, setCourses] = useStoredState<Course[]>('courses-v1', [])
   const [progress, setProgress] = useStoredState<Record<string, Progress>>('course-progress-v1', {})
+  const [streak, setStreak] = useStoredState<Streak>('learn-streak', { count: 0, lastDay: null })
+  const [today] = useState(() => toDateKey(new Date()))
   const [aiOn, setAiOn] = useState(false)
   const [view, setView] = useState<View>(noteId ? { name: 'add' } : { name: 'home' })
   const [photos, setPhotos] = useState<string[]>([])
@@ -96,6 +100,7 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
   }
 
   function record(courseId: string, blockId: string, firstTry: boolean) {
+    setStreak((s) => playedToday(s, toDateKey(new Date())))
     setProgress((all) => ({ ...all, [courseId]: recordResult(all[courseId] ?? {}, blockId, firstTry) }))
   }
 
@@ -105,7 +110,10 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
         <BackHeader title="Courses" backLabel="ofCourse" onBack={onExit} />
         <div className="learn-hero">
           <Hoot pose="point" size={84} animate decorative />
-          <p>Give me your coursework. I'll turn it into something you can play with.</p>
+          <div>
+            <p className="learn-hero__line">Give me your coursework. I'll turn it into something you can play with.</p>
+            {currentCount(streak, today) > 0 && <p className="streak">{currentCount(streak, today)}-day streak</p>}
+          </div>
         </div>
         <Button block onClick={() => setView({ name: 'add' })}><Icon name="plus" size={20} /> Make a course</Button>
         <ul className="course-list">
@@ -219,7 +227,12 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
               <span className="map-stop__mark" aria-hidden="true">{done ? <Icon name="check" size={18} /> : i + 1}</span>
               <button type="button" className="map-stop__card" onClick={() => setView({ name: 'lesson', courseId: course.id, lessonId: lesson.id })}>
                 <span className="course-row__title">{lesson.title}</span>
-                <span className="muted">{lesson.blocks.length} activities{done ? ' · Done' : ''}</span>
+                <span className="muted">{lesson.blocks.length} activities</span>
+                {done && (
+                  <span className="map-stars" aria-label={`${starsFor(lesson.blocks.filter((b) => courseProgress[b.id].firstTry).length, lesson.blocks.length)} of 3 stars`}>
+                    {'★'.repeat(starsFor(lesson.blocks.filter((b) => courseProgress[b.id].firstTry).length, lesson.blocks.length))}
+                  </span>
+                )}
                 {lesson.source?.quote && <span className="map-stop__source">From your work: "{lesson.source.quote}"</span>}
               </button>
             </li>

@@ -33,6 +33,9 @@ const blocks = [
   blockOf('explain', { prompt: str, points: list(str) }),
   blockOf('voice', { prompt: str, words: list(strict({ word: str, syllables: list(str) })) }),
   blockOf('catch', { prompt: str, items: list(strict({ text: str, good: { type: 'boolean' }, why: str })) }),
+  blockOf('match', { prompt: str, pairs: list(strict({ term: str, meaning: str })) }),
+  blockOf('flip', { prompt: str, pairs: list(strict({ term: str, meaning: str })) }),
+  blockOf('fill', { prompt: str, sentence: str, answers: list(str), extras: list(str), explain: str }),
 ]
 
 export const courseSchema = strict({

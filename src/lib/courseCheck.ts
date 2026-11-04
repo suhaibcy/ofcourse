@@ -51,6 +51,22 @@ export function checkBlock(block: Block): string[] {
     case 'explain':
       if (block.points.length < 2) problems.push('needs at least 2 points')
       break
+    case 'match':
+    case 'flip': {
+      if (block.pairs.length < 3 || block.pairs.length > 6) problems.push('needs 3 to 6 pairs')
+      const sides = block.pairs.flatMap((pair) => [pair.term, pair.meaning])
+      if (new Set(sides).size !== sides.length) problems.push('pairs repeat some text')
+      if (block.type === 'flip' && sides.some((text) => text.length > 40)) problems.push('flip cards must be 40 characters or fewer')
+      break
+    }
+    case 'fill': {
+      const blanks = block.sentence.split('___').length - 1
+      if (blanks < 1 || blanks !== block.answers.length) problems.push('blanks and answers do not match')
+      if (block.extras.length < 1) problems.push('needs at least 1 wrong word')
+      const bank = [...block.answers, ...block.extras]
+      if (new Set(bank).size !== bank.length) problems.push('word bank repeats a word')
+      break
+    }
     case 'voice':
       if (block.words.length < 1 || block.words.length > 5) problems.push('voice needs 1 to 5 words')
       for (const { word, syllables } of block.words) {

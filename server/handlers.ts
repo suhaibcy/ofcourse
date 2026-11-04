@@ -49,7 +49,10 @@ Use a variety of blocks, choosing what fits the subject:
 - explain: include one per course; list 2 to 4 points a good spoken explanation should cover.
 - voice: START the course with this. 1 to 4 important or hard-to-say words from the coursework, each a single word of 2 to 12 letters, split into syllables that join back into exactly the word. Saying them unlocks a game where the student's voice flies Hoot through letter rings to spell the last word.
 - catch: an arcade game. Falling items of at most 40 characters; good ones get caught and bad ones dodged. At least 3 good and 2 bad, each with a short "why". Use at least one per course.
-Favor the games (voice, catch, sandbox, order) over plain questions so the course feels playful, while still teaching the coursework.
+- match: drag terms onto meanings; 3 to 6 pairs. Use for vocabulary or cause and effect.
+- flip: a memory game; 3 to 6 pairs with each side at most 40 characters.
+- fill: a sentence where each ___ is a blank, with answers listed in order and 1 to 3 believable wrong extras. No word may repeat.
+Vary the games: never use the same block type twice in a row. Favor the games (voice, catch, flip, match, fill, sandbox, order) over plain questions so the course feels playful, while still teaching the coursework.
 Formulas may only use numbers, + - * / ^ ( ), the named variables, and sin cos tan sqrt log log2 log10 exp abs pi e.
 HONESTY RULE: Never reuse a problem from originalProblems. Every problem must be new practice, using different values and wording, that teaches the same method. This must never answer the student's actual assignment.
 Each lesson's source must quote the coursework concept it builds on. Every conceptId must match an id in concepts. Do not include medical, legal, or diagnostic advice. Write clearly and warmly, with no filler.`

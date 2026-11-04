@@ -2,6 +2,9 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { BackHeader } from '../components/BackHeader'
 import { CalcIt } from '../components/blocks/CalcIt'
 import { CatchIt } from '../components/blocks/CatchIt'
+import { FillBlanks } from '../components/blocks/FillBlanks'
+import { FlipCards } from '../components/blocks/FlipCards'
+import { MatchUp } from '../components/blocks/MatchUp'
 import { SayAndFly } from '../components/blocks/SayAndFly'
 import { ExplainBack } from '../components/blocks/ExplainBack'
 import { PutInOrder } from '../components/blocks/PutInOrder'
@@ -12,6 +15,7 @@ import { StepThrough } from '../components/blocks/StepThrough'
 import { Button } from '../components/Button'
 import { Hoot, type HootPose, type HootReaction } from '../components/Hoot'
 import type { Block } from '../lib/course'
+import { starsFor } from '../lib/streak'
 
 type PlayerProps = {
   title: string
@@ -73,8 +77,7 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
   }
 
   if (finished) {
-    const share = blocks.length === 0 ? 0 : rightCount / blocks.length
-    const stars = share === 1 ? 3 : share >= 0.5 ? 2 : 1
+    const stars = starsFor(rightCount, blocks.length)
     return (
       <div className="lesson-done">
         <div className="lesson-done__hoot">
@@ -116,6 +119,9 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
         {block.type === 'explain' && <ExplainBack block={block} aiOn={aiOn} {...shared} />}
         {block.type === 'voice' && <SayAndFly block={block} aiOn={aiOn} {...shared} />}
         {block.type === 'catch' && <CatchIt block={block} {...shared} />}
+        {block.type === 'match' && <MatchUp block={block} {...shared} />}
+        {block.type === 'flip' && <FlipCards block={block} {...shared} />}
+        {block.type === 'fill' && <FillBlanks block={block} {...shared} />}
       </div>
     </>
   )

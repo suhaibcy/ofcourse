@@ -61,6 +61,17 @@ test('voice words must match their syllables, and a catch game needs both kinds 
   assert.ok(checkBlock({ type: 'catch', id: 'k', conceptId: 'c', prompt: 'p', items: [item(true), item(true), item(true)] }).length > 0)
 })
 
+test('pair games and fill-in sentences reject broken content', () => {
+  const pairs = [{ term: 'a', meaning: '1' }, { term: 'b', meaning: '2' }, { term: 'c', meaning: '3' }]
+  assert.deepEqual(checkBlock({ type: 'match', id: 'm', conceptId: 'c', prompt: 'p', pairs }), [])
+  assert.ok(checkBlock({ type: 'flip', id: 'm', conceptId: 'c', prompt: 'p', pairs: pairs.slice(0, 2) }).length > 0)
+  assert.ok(checkBlock({ type: 'flip', id: 'm', conceptId: 'c', prompt: 'p', pairs: [...pairs.slice(0, 2), { term: 'a', meaning: '9' }] }).length > 0)
+  const fill = { type: 'fill' as const, id: 'f', conceptId: 'c', prompt: 'p', explain: 'e' }
+  assert.deepEqual(checkBlock({ ...fill, sentence: 'A ___ and ___', answers: ['x', 'y'], extras: ['z'] }), [])
+  assert.ok(checkBlock({ ...fill, sentence: 'A ___ and ___', answers: ['x'], extras: ['z'] }).length > 0)
+  assert.ok(checkBlock({ ...fill, sentence: 'A ___', answers: ['x'], extras: [] }).length > 0)
+})
+
 test('a copied homework problem is rejected, new numbers are not', () => {
   assert.equal(isCopy('Solve x^2 - 5x + 6 = 0', 'solve x^2 - 5x + 6 = 0.'), true)
   assert.equal(isCopy('Solve x^2 - 7x + 12 = 0', 'Solve x^2 - 5x + 6 = 0'), false)

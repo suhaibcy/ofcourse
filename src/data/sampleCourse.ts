@@ -45,6 +45,32 @@ export const sampleCourse: Course = {
       ],
     },
     {
+      id: 'lw', title: 'Words to know',
+      intro: 'Flip, match, and fill your way through the key words.',
+      blocks: [
+        { type: 'flip', id: 'lw-flip', conceptId: 'shape',
+          prompt: 'Flip two cards. Find each word and its meaning.',
+          pairs: [
+            { term: 'Vertex', meaning: 'The turning point' },
+            { term: 'Root', meaning: 'Where it crosses the x-axis' },
+            { term: 'Axis of symmetry', meaning: 'The line that splits it evenly' },
+            { term: 'Negative a', meaning: 'It opens downward' },
+          ] },
+        { type: 'match', id: 'lw-match', conceptId: 'discriminant',
+          prompt: 'Drag each discriminant onto what it means.',
+          pairs: [
+            { term: 'Positive', meaning: 'Two real solutions' },
+            { term: 'Zero', meaning: 'One real solution' },
+            { term: 'Negative', meaning: 'No real solutions' },
+          ] },
+        { type: 'fill', id: 'lw-fill', conceptId: 'shape',
+          prompt: 'Drag the words into the sentence.',
+          sentence: 'The ___ is the curve\'s turning point, and a positive a makes it open ___.',
+          answers: ['vertex', 'upward'], extras: ['root', 'downward'],
+          explain: 'The vertex is where the curve turns, and positive a means it opens upward.' },
+      ],
+    },
+    {
       id: 'l2', title: 'Solve by factoring',
       intro: 'Work through the logic one decision at a time.',
       blocks: [

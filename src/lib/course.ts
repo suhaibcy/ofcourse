@@ -80,7 +80,31 @@ export type CatchBlock = {
   items: { text: string; good: boolean; why: string }[]
 }
 
-export type Block = StepBlock | SandboxBlock | OrderBlock | SpotBlock | SortBlock | CalcBlock | ExplainBlock | VoiceBlock | CatchBlock
+// Drag each term onto its meaning.
+export type MatchBlock = {
+  type: 'match'; id: string; conceptId: string
+  prompt: string
+  pairs: { term: string; meaning: string }[]
+}
+
+// A memory game with term and meaning cards.
+export type FlipBlock = {
+  type: 'flip'; id: string; conceptId: string
+  prompt: string
+  pairs: { term: string; meaning: string }[]
+}
+
+// Drag words into a sentence. Each ___ is a blank, filled by `answers` in order.
+export type FillBlock = {
+  type: 'fill'; id: string; conceptId: string
+  prompt: string
+  sentence: string
+  answers: string[]
+  extras: string[] // wrong words mixed in
+  explain: string
+}
+
+export type Block = StepBlock | SandboxBlock | OrderBlock | SpotBlock | SortBlock | CalcBlock | ExplainBlock | VoiceBlock | CatchBlock | MatchBlock | FlipBlock | FillBlock
 
 export type SourceRef = { photo: number; quote: string } // where in the coursework this came from
 
