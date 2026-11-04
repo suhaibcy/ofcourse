@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AskButton } from './components/AskButton'
 import { TabBar, type TabId } from './components/TabBar'
 import { CalendarScreen } from './screens/CalendarScreen'
 import { ClassesScreen } from './screens/ClassesScreen'
+import { LearnScreen } from './screens/LearnScreen'
 import { NotesScreen } from './screens/NotesScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PlannerScreen } from './screens/PlannerScreen'
@@ -27,6 +28,13 @@ function App() {
   const [tab, setTab] = useState<TabId>('today')
   const [page, setPage] = useState<Page>(null)
   const [transition, setTransition] = useState<Transition>('tab')
+  const [learnHash, setLearnHash] = useState(window.location.hash)
+
+  useEffect(() => {
+    const onChange = () => setLearnHash(window.location.hash)
+    window.addEventListener('hashchange', onChange)
+    return () => window.removeEventListener('hashchange', onChange)
+  }, [])
 
   function changeTab(next: TabId) {
     setTransition('tab')
@@ -39,6 +47,17 @@ function App() {
     setTransition(depth(next) > depth(page) ? 'push' : 'pop')
     setPage(next)
     window.scrollTo(0, 0)
+  }
+
+  // Courses have their own link (#/learn), so they open before the onboarding check.
+  if (learnHash.startsWith('#/learn')) {
+    return (
+      <main className="app">
+        <div className="screen screen--tab">
+          <LearnScreen noteId={learnHash.split('note=')[1]} onExit={() => { window.location.hash = '' }} />
+        </div>
+      </main>
+    )
   }
 
   // First time: onboarding instead of the tabs (no tab bar, no Ask button).

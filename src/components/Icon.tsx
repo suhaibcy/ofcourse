@@ -19,6 +19,10 @@ const paths = {
   compose: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
   profile: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4.5 20a7.5 7.5 0 0 1 15 0',
   trash: 'M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13',
+  camera: 'M4 8h3.5L9 5.5h6L16.5 8H20v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
+  mic: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM6 11a6 6 0 0 0 12 0M12 17v4',
+  grip: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
 } as const
 
 export type IconName = keyof typeof paths

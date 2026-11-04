@@ -51,6 +51,30 @@ function canvasFeed(envUrl: string | undefined): Plugin {
   }
 }
 
+// The same course routes Vercel runs in production (api/), for the dev server.
+// The code loads on each request, so server changes apply without a restart.
+function courseApi(env: Record<string, string>): Plugin {
+  return {
+    name: 'course-api',
+    configureServer(server) {
+      process.env.AI_ENABLED = env.AI_ENABLED
+      process.env.MODEL_API_KEY = env.MODEL_API_KEY
+      process.env.AI_MODEL = env.AI_MODEL
+      for (const route of ['status', 'course', 'explain']) {
+        server.middlewares.use(`/api/${route}`, async (req, res) => {
+          let body = ''
+          for await (const chunk of req) body += chunk
+          const { handleRoute } = await server.ssrLoadModule('/server/handlers.ts')
+          const result = await handleRoute(route, req.method, body ? JSON.parse(body) : {}, req.socket.remoteAddress ?? 'local')
+          res.statusCode = result.status
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify(result.json))
+        })
+      }
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // '' loads every variable in .env, not just ones starting with VITE_.
@@ -58,6 +82,6 @@ export default defineConfig(({ mode }) => {
   // feed link deliberately doesn't start with VITE_.
   const env = loadEnv(mode, process.cwd(), '')
   return {
-    plugins: [react(), canvasFeed(env.CANVAS_FEED_URL)],
+    plugins: [react(), canvasFeed(env.CANVAS_FEED_URL), courseApi(env)],
   }
 })

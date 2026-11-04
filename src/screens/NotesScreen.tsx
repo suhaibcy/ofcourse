@@ -54,10 +54,16 @@ export function NotesScreen() {
       <>
         <BackHeader title="" backLabel="Notes" onBack={close}
           action={
-            <button type="button" className="icon-btn" aria-label="Delete note"
-              onClick={() => { deleteNote(open.id); setOpenId(null) }}>
-              <Icon name="trash" size={20} />
-            </button>
+            <span>
+              <button type="button" className="icon-btn" aria-label="Make a course from this note"
+                onClick={() => { window.location.hash = `#/learn?note=${open.id}` }}>
+                <Icon name="ask" size={20} />
+              </button>
+              <button type="button" className="icon-btn" aria-label="Delete note"
+                onClick={() => { deleteNote(open.id); setOpenId(null) }}>
+                <Icon name="trash" size={20} />
+              </button>
+            </span>
           } />
         <label className="note-folder">
           <span className="muted-inline">Class</span>
