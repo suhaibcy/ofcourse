@@ -1,9 +1,9 @@
 import type { Course } from '../lib/course.ts'
 import { sampleCourse } from './sampleCourse.ts'
 
-// Hand-written starter courses, so there's something to explore in every subject.
-// The app labels them as samples and never presents them as AI-generated.
-const sampleHint = 'Hand-written sample.'
+// Starter courses written in advance, so there's something to explore in every subject.
+// The app labels them as samples and never says Hoot or Meta's models generated them.
+const sampleHint = 'Sample course.'
 
 const science: Course = {
   id: 'sample-cells',

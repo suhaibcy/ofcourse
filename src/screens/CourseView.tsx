@@ -46,7 +46,7 @@ export function CourseView({ course, progress, aiOn, today, onBack, onPlay, onUp
       <p className="course-tags">
         {course.subject && <span className="tag">{course.subject}</span>}
         {course.level && <span className="tag">{course.level}</span>}
-        {course.origin === 'sample' && <span className="tag">Sample, not AI-made</span>}
+        {course.origin === 'sample' && <span className="tag">Sample, not made by Hoot</span>}
       </p>
       <div className="learn-tabs" role="tablist">
         {(['lessons', 'notes', 'plan'] as const).map((id) => (

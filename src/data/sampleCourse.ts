@@ -1,11 +1,11 @@
 import type { Course } from '../lib/course.ts'
 
-// A course written by hand, so the player works without the AI. The app labels
-// it as a sample and never presents it as AI-generated.
+// A course written in advance, so the player works without Meta's models. The app labels
+// it as a sample and never says Hoot or Meta's models generated it.
 export const sampleCourse: Course = {
   id: 'sample-quadratics',
   title: 'Parabolas',
-  summary: 'A hand-written sample that shows what each lesson type feels like.',
+  summary: 'A sample course that shows what the lesson types feel like.',
   origin: 'sample',
   subject: 'Math',
   level: 'Some background',
