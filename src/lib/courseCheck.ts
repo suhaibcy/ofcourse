@@ -51,6 +51,9 @@ export function checkBlock(block: Block): string[] {
     case 'explain':
       if (block.points.length < 2) problems.push('needs at least 2 points')
       break
+    case 'code':
+      if (!block.starter.trim() || !block.solution.trim() || !block.expected.trim()) problems.push('code needs starter code, a solution, and expected output')
+      break
     case 'match':
     case 'flip': {
       if (block.pairs.length < 3 || block.pairs.length > 6) problems.push('needs 3 to 6 pairs')

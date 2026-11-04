@@ -1,10 +1,12 @@
-# ofCourse Courses
+# ofCourse Learn
 
-**Photograph your coursework. Get an interactive course you can play, with answers that were double-checked.**
+**A study platform that turns your own coursework into games, notes, and a study plan.**
 
-Built for the Meta Global AI Developer Hackathon (Indie Developer track, Build for Your World). ofCourse is a phone-first app for college students. This project adds Courses: Hoot the owl reads your notes and builds lessons you do instead of lessons you watch.
+Built for the Meta Global AI Developer Hackathon (Indie Developer track, Build for Your World). ofCourse started as a phone-first planner for college students. This project adds Learn: subjects to explore, mastery levels, hands-on coding labs, and Hoot the owl, who uses Meta's models to read your notes, summarize them, adapt to your level, find your exam dates, and build lessons you do instead of lessons you watch.
 
-For students 18 and older.
+**Who it's for:** the long-term goal is learners of every level. This version is for people 18 and older, as the Meta Model API terms (section 10.1) require.
+
+**Inspired by** how free learning platforms like Khan Academy (subjects, mastery) and Kaggle (hands-on labs, progression) work. Not affiliated with either.
 
 **Open it directly:** add `/#/learn` to the app's address.
 
@@ -14,7 +16,9 @@ For students 18 and older.
 
 New during the hackathon:
 - The course engine, checks, and mastery tracking (`src/lib/course*.ts`, `formula.ts`, `mastery.ts`)
-- Nine interactive lesson types, including voice-controlled and arcade games (`src/components/blocks/`, `src/lib/voiceGame.ts`, `src/lib/mic.ts`)
+- Thirteen interactive lesson types, including voice-controlled and arcade games, drag and drop, and a code lab (`src/components/blocks/`, `src/lib/voiceGame.ts`, `src/lib/mic.ts`, `src/lib/runCode.ts`)
+- The Learn hub: subjects, hand-written sample courses, mastery levels, points and ranks, streaks, and the course challenge (`src/data/sampleLibrary.ts`)
+- Study notes that save to the Notes tab, and study plans that save to the planner (`src/screens/CourseView.tsx`, `src/lib/studyPlan.ts`)
 - The Courses screens (`src/screens/LearnScreen.tsx`, `CoursePlayer.tsx`, `src/styles/learn.css`)
 - The Meta model pipeline (`server/`, `api/`)
 
@@ -46,6 +50,10 @@ A course map you can play, with a Fix it round built from what you missed
 | Say it and Fly | Say hard words from your coursework out loud (Muse Voice Transcribe listens) to unlock Hoot Flight, where the volume of your voice flies Hoot through letter rings to spell the word |
 | Catch it | Slide Hoot to catch the right answers and dodge the wrong ones |
 | Build the bridge | Tap the steps of a process in order. Each right step lays a plank for Hoot to cross |
+| Flip cards | A memory game that pairs each term with its meaning |
+| Match up | Drag each term onto its meaning |
+| Fill the blanks | Drag words into a sentence |
+| Code lab | Edit and run real JavaScript until it prints the right output |
 | Step-through | Solve a problem one decision at a time, with an explanation for each wrong turn |
 | Sandbox | Move sliders until your live curve lands on the target |
 | Spot the mistake | Tap the line where a worked solution goes wrong |

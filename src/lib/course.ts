@@ -104,7 +104,28 @@ export type FillBlock = {
   explain: string
 }
 
-export type Block = StepBlock | SandboxBlock | OrderBlock | SpotBlock | SortBlock | CalcBlock | ExplainBlock | VoiceBlock | CatchBlock | MatchBlock | FlipBlock | FillBlock
+// Write and run real JavaScript in the browser until it prints the right output.
+export type CodeBlock = {
+  type: 'code'; id: string; conceptId: string
+  prompt: string
+  starter: string
+  solution: string
+  expected: string // exactly what the finished code should print
+  explain: string
+}
+
+export type Block = StepBlock | SandboxBlock | OrderBlock | SpotBlock | SortBlock | CalcBlock | ExplainBlock | VoiceBlock | CatchBlock | MatchBlock | FlipBlock | FillBlock | CodeBlock
+
+export const LEVELS = ['Starting out', 'Some background', 'Advanced'] as const
+export type Level = (typeof LEVELS)[number]
+
+// The notes and dates that come with a course.
+export type StudyKit = {
+  summary: string
+  keyIdeas: string[]
+  terms: { term: string; meaning: string }[]
+  dates: { title: string; date: string; kind: string }[] // date is a day key, or "" if none was written down
+}
 
 export type SourceRef = { photo: number; quote: string } // where in the coursework this came from
 
@@ -121,6 +142,9 @@ export type Course = {
   title: string
   summary: string
   origin: 'sample' | 'generated' // a sample was written by hand, not by the AI
+  subject?: string
+  level?: Level
+  kit?: StudyKit
   concepts: { id: string; name: string }[]
   lessons: Lesson[]
   checks?: { checkedQuestions: number; removedBlocks: number } // what the checker did

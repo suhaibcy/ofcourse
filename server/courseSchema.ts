@@ -11,9 +11,18 @@ const namedValues = list(strict({ name: str, value: num }))
 const blockOf = (type: string, properties: Record<string, object>) =>
   strict({ type: { type: 'string', enum: [type] }, conceptId: str, ...properties })
 
+const noteFields = {
+  summary: str,
+  keyIdeas: list(str),
+  terms: list(strict({ term: str, meaning: str })),
+}
+
+export const notesSchema = strict(noteFields)
+
 export const readingSchema = strict({
   topic: str,
-  summary: str,
+  subject: { type: 'string', enum: ['Math', 'Science', 'Reading & writing', 'Coding', 'History & social studies', 'Languages', 'Other'] },
+  kit: strict({ ...noteFields, dates: list(strict({ title: str, date: str, kind: str })) }),
   concepts: list(strict({ name: str, quote: str, photo: num })),
   originalProblems: list(str),
   isReadable: { type: 'boolean' },
@@ -36,6 +45,7 @@ const blocks = [
   blockOf('match', { prompt: str, pairs: list(strict({ term: str, meaning: str })) }),
   blockOf('flip', { prompt: str, pairs: list(strict({ term: str, meaning: str })) }),
   blockOf('fill', { prompt: str, sentence: str, answers: list(str), extras: list(str), explain: str }),
+  blockOf('code', { prompt: str, starter: str, solution: str, expected: str, explain: str }),
 ]
 
 export const courseSchema = strict({

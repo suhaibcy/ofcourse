@@ -1,4 +1,6 @@
-import type { Course } from './course'
+import { allBlocks, type Course, type Level, type StudyKit } from './course'
+import { removeBlocks } from './courseCheck'
+import { runCode } from './runCode'
 
 // The app's side of the AI steps. The API key stays on the server; these
 // functions only ask our own server to do the work.
@@ -21,16 +23,38 @@ export async function aiAvailable(): Promise<boolean> {
 
 export type BuildStage = 'reading' | 'designing' | 'checking'
 
+// Actually run each coding activity's solution. If it doesn't print what the
+// lesson promises, that activity never reaches the student.
+async function checkCodeBlocks(course: Course): Promise<Course> {
+  const broken: string[] = []
+  for (const block of allBlocks(course)) {
+    if (block.type !== 'code') continue
+    const result = await runCode(block.solution)
+    if (result.error || result.output.trim() !== block.expected.trim()) broken.push(block.id)
+  }
+  if (broken.length === 0) return course
+  const checks = course.checks ?? { checkedQuestions: 0, removedBlocks: 0 }
+  return { ...removeBlocks(course, broken), checks: { ...checks, removedBlocks: checks.removedBlocks + broken.length } }
+}
+
+type Reading = { subject: string; kit: StudyKit }
+
 // The fixed steps, run one at a time so the student can watch progress and no
 // single server call runs too long.
-export async function buildCourse(input: { photos: string[]; text: string; goal: string }, onStage: (stage: BuildStage) => void): Promise<Course> {
+export async function buildCourse(input: { photos: string[]; text: string; goal: string; level: Level }, onStage: (stage: BuildStage) => void): Promise<Course> {
   onStage('reading')
-  const { reading } = await post<{ reading: unknown }>('/api/course', { action: 'read', ...input })
+  const { reading } = await post<{ reading: Reading }>('/api/course', { action: 'read', ...input })
   onStage('designing')
-  const { course } = await post<{ course: Course }>('/api/course', { action: 'design', reading, goal: input.goal })
+  const { course } = await post<{ course: Course }>('/api/course', { action: 'design', reading, goal: input.goal, level: input.level })
   onStage('checking')
   const checked = await post<{ course: Course }>('/api/course', { action: 'verify', course, reading })
-  return checked.course
+  const final = await checkCodeBlocks(checked.course)
+  return { ...final, subject: reading.subject, kit: reading.kit }
+}
+
+export async function rewriteNotes(kit: StudyKit, level: Level): Promise<StudyKit> {
+  const { notes } = await post<{ notes: Pick<StudyKit, 'summary' | 'keyIdeas' | 'terms'> }>('/api/course', { action: 'rewrite', kit, level })
+  return { ...kit, ...notes }
 }
 
 export type ExplainResult = { transcript: string; covered: { point: number; quote: string }[] }

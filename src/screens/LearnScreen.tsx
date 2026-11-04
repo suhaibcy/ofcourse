@@ -3,16 +3,17 @@ import { BackHeader } from '../components/BackHeader'
 import { Button } from '../components/Button'
 import { Hoot } from '../components/Hoot'
 import { Icon } from '../components/Icon'
-import { sampleCourse } from '../data/sampleCourse'
-import type { Block, Course } from '../lib/course'
+import { sampleLibrary } from '../data/sampleLibrary'
+import { LEVELS, type Block, type Course, type Level } from '../lib/course'
 import { aiAvailable, buildCourse, type BuildStage } from '../lib/courseClient'
-import { lessonDone, masteryByConcept, missedBlocks, recordFix, recordResult, type Progress } from '../lib/mastery'
-import { shrinkImage } from '../lib/shrinkImage'
 import { toDateKey } from '../lib/dates'
-import { currentCount, playedToday, starsFor, type Streak } from '../lib/streak'
+import { courseMastery, pointsFor, rankFor, recordFix, recordResult, type Progress } from '../lib/mastery'
+import { shrinkImage } from '../lib/shrinkImage'
+import { currentCount, playedToday, type Streak } from '../lib/streak'
 import { newId, useStoredState } from '../lib/useStoredState'
 import { useAppData, type Note } from '../state/appDataContext'
 import { CoursePlayer } from './CoursePlayer'
+import { CourseView } from './CourseView'
 
 const MAX_PHOTOS = 5
 
@@ -21,12 +22,11 @@ type View =
   | { name: 'add' }
   | { name: 'building'; stage: BuildStage }
   | { name: 'course'; courseId: string }
-  | { name: 'lesson'; courseId: string; lessonId: string }
-  | { name: 'fix'; courseId: string; blocks: Block[] }
+  | { name: 'play'; courseId: string; title: string; intro: string; blocks: Block[]; mode: 'lesson' | 'fix' }
 
 const stages: { id: BuildStage; label: string }[] = [
-  { id: 'reading', label: 'Reading your coursework' },
-  { id: 'designing', label: 'Designing your lessons' },
+  { id: 'reading', label: 'Reading and summarizing your work' },
+  { id: 'designing', label: 'Designing your lessons and games' },
   { id: 'checking', label: 'Double-checking the answers' },
 ]
 
@@ -34,7 +34,7 @@ function noteText(note: Note): string {
   return note.lines.map((line) => line.text).join('\n')
 }
 
-// Turn coursework into an interactive course: add it, watch Hoot build, then play.
+// The Learn hub: explore subjects, make a course from your own work, and play.
 export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () => void }) {
   const { notes } = useAppData()
   const [adult, setAdult] = useStoredState('learn-adult-ok', false)
@@ -44,27 +44,29 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
   const [today] = useState(() => toDateKey(new Date()))
   const [aiOn, setAiOn] = useState(false)
   const [view, setView] = useState<View>(noteId ? { name: 'add' } : { name: 'home' })
+  const [subject, setSubject] = useState('All')
   const [photos, setPhotos] = useState<string[]>([])
   const [text, setText] = useState(() => {
     const note = notes.find((n) => n.id === noteId)
     return note ? noteText(note) : ''
   })
   const [goal, setGoal] = useState('')
+  const [level, setLevel] = useState<Level>('Some background')
   const [error, setError] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => { void aiAvailable().then(setAiOn) }, [])
 
-  const allCourses = [...courses, sampleCourse]
+  const allCourses = [...courses, ...sampleLibrary]
   const courseFor = (id: string) => allCourses.find((c) => c.id === id)
 
   if (!adult) {
     return (
       <div className="learn-gate">
         <Hoot pose="hello" size={132} animate decorative />
-        <h1 className="screen-title">Turn your coursework into a course</h1>
-        <p className="muted">Take a photo of your notes or practice work. Hoot builds interactive lessons from it, then double-checks the answers.</p>
-        <p className="muted">This feature is for students 18 and older.</p>
+        <h1 className="screen-title">Learn anything, your way</h1>
+        <p className="muted">Turn your coursework into games, notes, and a study plan, or explore courses in any subject. Hoot's AI is powered by Meta's models.</p>
+        <p className="muted">Hoot is for learners 18 and older for now.</p>
         <Button block onClick={() => setAdult(true)}>I'm 18 or older</Button>
         <Button block variant="ghost" onClick={onExit}>Not now</Button>
       </div>
@@ -86,8 +88,8 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
   async function build() {
     setError('')
     try {
-      const built = await buildCourse({ photos, text, goal }, (stage) => setView({ name: 'building', stage }))
-      const course: Course = { ...built, id: newId(), origin: 'generated' }
+      const built = await buildCourse({ photos, text, goal, level }, (stage) => setView({ name: 'building', stage }))
+      const course: Course = { ...built, id: newId(), origin: 'generated', level }
       setCourses([course, ...courses])
       setPhotos([])
       setText('')
@@ -99,33 +101,54 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
     }
   }
 
-  function record(courseId: string, blockId: string, firstTry: boolean) {
-    setStreak((s) => playedToday(s, toDateKey(new Date())))
-    setProgress((all) => ({ ...all, [courseId]: recordResult(all[courseId] ?? {}, blockId, firstTry) }))
-  }
-
   if (view.name === 'home') {
+    const points = pointsFor(progress)
+    const rank = rankFor(points)
+    const days = currentCount(streak, today)
+    const subjects = ['All', ...new Set(sampleLibrary.map((c) => c.subject ?? 'Other'))]
+    const explore = sampleLibrary.filter((c) => subject === 'All' || c.subject === subject)
+    const card = (course: Course) => {
+      const mastery = courseMastery(course, progress[course.id] ?? {})
+      return (
+        <li key={course.id}>
+          <button type="button" className="course-row" onClick={() => setView({ name: 'course', courseId: course.id })}>
+            <span className="course-row__title">{course.title}</span>
+            <span className="muted">{[course.subject, course.level, `${course.lessons.length} lessons`].filter(Boolean).join(' · ')}</span>
+            <span className="mastery__track" aria-label={`${mastery}% mastered`}><span style={{ transform: `scaleX(${mastery / 100})` }} /></span>
+          </button>
+        </li>
+      )
+    }
     return (
       <>
-        <BackHeader title="Courses" backLabel="ofCourse" onBack={onExit} />
-        <div className="learn-hero">
-          <Hoot pose="point" size={84} animate decorative />
+        <BackHeader title="Learn" backLabel="ofCourse" onBack={onExit} />
+        <div className="rank-card">
+          <Hoot pose="point" size={72} animate decorative />
           <div>
-            <p className="learn-hero__line">Give me your coursework. I'll turn it into something you can play with.</p>
-            {currentCount(streak, today) > 0 && <p className="streak">{currentCount(streak, today)}-day streak</p>}
+            <p className="rank-card__name">{rank.name}</p>
+            <p className="muted">{points} owl points{rank.toNext !== null ? ` · ${rank.toNext} to ${rank.nextName}` : ''}</p>
+            {days > 0 && <p className="streak">{days}-day streak</p>}
           </div>
         </div>
-        <Button block onClick={() => setView({ name: 'add' })}><Icon name="plus" size={20} /> Make a course</Button>
-        <ul className="course-list">
-          {allCourses.map((course) => (
-            <li key={course.id}>
-              <button type="button" className="course-row" onClick={() => setView({ name: 'course', courseId: course.id })}>
-                <span className="course-row__title">{course.title}</span>
-                <span className="muted">{course.lessons.length} lessons{course.origin === 'sample' ? ' · Hand-written sample, not AI-made' : ''}</span>
-              </button>
-            </li>
+        <div className="make-card">
+          <strong>Turn your work into a course</strong>
+          <p className="muted">Hoot summarizes your notes, finds your exam dates, and builds games from what you're studying.</p>
+          <Button block onClick={() => setView({ name: 'add' })}><Icon name="camera" size={20} /> Make a course</Button>
+        </div>
+        {courses.length > 0 && (
+          <>
+            <h2 className="learn-subhead">My courses</h2>
+            <ul className="course-list">{courses.map(card)}</ul>
+          </>
+        )}
+        <h2 className="learn-subhead">Explore</h2>
+        <div className="filter-chips" role="tablist" aria-label="Filter by subject">
+          {subjects.map((name) => (
+            <button key={name} type="button" role="tab" aria-selected={subject === name} className={subject === name ? 'filter-chip filter-chip--on' : 'filter-chip'} onClick={() => setSubject(name)}>{name}</button>
           ))}
-        </ul>
+        </div>
+        <ul className="course-list">{explore.map(card)}</ul>
+        <p className="muted learn-note">Explore courses are hand-written samples, not AI-made.</p>
       </>
     )
   }
@@ -135,7 +158,7 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
     return (
       <>
         <BackHeader title="Make a course" onBack={() => setView({ name: 'home' })} />
-        <p className="muted">Add photos of your notes or practice work. Leave out names, ID numbers, and anything private.</p>
+        <p className="muted">Add photos of your notes, a syllabus, or practice work. Leave out names, ID numbers, and anything private.</p>
         <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={(e) => { void addPhotos(e.target.files); e.target.value = '' }} />
         <div className="photo-grid">
           {photos.map((photo, i) => (
@@ -156,13 +179,21 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
           <span className="learn-field__label">Or paste your notes</span>
           <textarea className="input learn-textarea" rows={4} value={text} onChange={(e) => setText(e.target.value)} />
         </label>
+        <div className="learn-field">
+          <span className="learn-field__label">How much do you already know?</span>
+          <div className="chip-row">
+            {LEVELS.map((name) => (
+              <button key={name} type="button" aria-pressed={level === name} className={level === name ? 'learn-tab learn-tab--on' : 'learn-tab'} onClick={() => setLevel(name)}>{name}</button>
+            ))}
+          </div>
+        </div>
         <label className="learn-field">
           <span className="learn-field__label">What do you want to get good at? (optional)</span>
           <input className="input" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Ready for Friday's quiz" />
         </label>
         <p className="muted learn-note">Hoot teaches the method with new practice problems. It won't answer your actual assignment. Photos aren't saved.</p>
         {error && <p className="feedback feedback--wrong" role="alert">{error}</p>}
-        {!aiOn && <p className="feedback" role="status">Course building is turned off right now. You can still try the sample course.</p>}
+        {!aiOn && <p className="feedback" role="status">Course building is turned off right now. You can still try the sample courses.</p>}
         <Button block disabled={!ready || !aiOn} onClick={() => void build()}>Build my course</Button>
       </>
     )
@@ -188,71 +219,25 @@ export function LearnScreen({ noteId, onExit }: { noteId?: string; onExit: () =>
 
   const course = courseFor(view.courseId)
   if (!course) return null
-  const courseProgress = progress[course.id] ?? {}
+  const backToCourse = () => setView({ name: 'course', courseId: course.id })
 
-  if (view.name === 'lesson') {
-    const lesson = course.lessons.find((l) => l.id === view.lessonId)
-    if (!lesson) return null
+  if (view.name === 'play') {
     return (
-      <CoursePlayer key={lesson.id} title={lesson.title} intro={lesson.intro} blocks={lesson.blocks} aiOn={aiOn}
-        onResult={(blockId, firstTry) => record(course.id, blockId, firstTry)}
-        onExit={() => setView({ name: 'course', courseId: course.id })} />
+      <CoursePlayer key={view.title} title={view.title} intro={view.intro} blocks={view.blocks} aiOn={aiOn} onExit={backToCourse}
+        onResult={(blockId, firstTry) => {
+          setStreak((s) => playedToday(s, today))
+          setProgress((all) => {
+            const current = all[course.id] ?? {}
+            return { ...all, [course.id]: view.mode === 'fix' && current[blockId] ? recordFix(current, blockId, firstTry) : recordResult(current, blockId, firstTry) }
+          })
+        }} />
     )
   }
-
-  if (view.name === 'fix') {
-    return (
-      <CoursePlayer key="fix" title="Fix it" intro="These are the ones that tripped you up. Try them again." blocks={view.blocks} aiOn={aiOn}
-        onResult={(blockId, firstTry) => setProgress((all) => ({ ...all, [course.id]: recordFix(all[course.id] ?? {}, blockId, firstTry) }))} onExit={() => setView({ name: 'course', courseId: course.id })} />
-    )
-  }
-
-  const missed = missedBlocks(course, courseProgress)
-  const mastery = masteryByConcept(course, courseProgress)
-  const nextLesson = course.lessons.findIndex((lesson) => !lessonDone(lesson.blocks, courseProgress))
 
   return (
-    <>
-      <BackHeader title={course.title} backLabel="Courses" onBack={() => setView({ name: 'home' })} />
-      <p className="muted">{course.summary}</p>
-      {course.origin === 'sample' && <p className="tag learn-tag">Hand-written sample, not AI-made</p>}
-      {course.checks && (
-        <p className="check-note"><Icon name="check" size={16} /> Hoot double-checked {course.checks.checkedQuestions} questions and removed {course.checks.removedBlocks} that didn't hold up.</p>
-      )}
-      <ol className="course-map">
-        {course.lessons.map((lesson, i) => {
-          const done = lessonDone(lesson.blocks, courseProgress)
-          return (
-            <li key={lesson.id} className={done ? 'map-stop map-stop--done' : i === nextLesson ? 'map-stop map-stop--next' : 'map-stop'}>
-              <span className="map-stop__mark" aria-hidden="true">{done ? <Icon name="check" size={18} /> : i + 1}</span>
-              <button type="button" className="map-stop__card" onClick={() => setView({ name: 'lesson', courseId: course.id, lessonId: lesson.id })}>
-                <span className="course-row__title">{lesson.title}</span>
-                <span className="muted">{lesson.blocks.length} activities</span>
-                {done && (
-                  <span className="map-stars" aria-label={`${starsFor(lesson.blocks.filter((b) => courseProgress[b.id].firstTry).length, lesson.blocks.length)} of 3 stars`}>
-                    {'★'.repeat(starsFor(lesson.blocks.filter((b) => courseProgress[b.id].firstTry).length, lesson.blocks.length))}
-                  </span>
-                )}
-                {lesson.source?.quote && <span className="map-stop__source">From your work: "{lesson.source.quote}"</span>}
-              </button>
-            </li>
-          )
-        })}
-      </ol>
-      {missed.length > 0 && (
-        <Button block variant="secondary" onClick={() => setView({ name: 'fix', courseId: course.id, blocks: missed })}>
-          Fix it: {missed.length} to practice again
-        </Button>
-      )}
-      <h2 className="learn-subhead">What you've got</h2>
-      <ul className="mastery">
-        {mastery.map((concept) => (
-          <li key={concept.id}>
-            <span className="mastery__label">{concept.name}<strong>{concept.percent === null ? 'Not tried' : `${concept.percent}%`}</strong></span>
-            <span className="mastery__track"><span style={{ transform: `scaleX(${(concept.percent ?? 0) / 100})` }} /></span>
-          </li>
-        ))}
-      </ul>
-    </>
+    <CourseView course={course} progress={progress[course.id] ?? {}} aiOn={aiOn} today={today}
+      onBack={() => setView({ name: 'home' })}
+      onPlay={(title, intro, blocks, mode) => setView({ name: 'play', courseId: course.id, title, intro, blocks, mode })}
+      onUpdateKit={(kit) => setCourses(courses.map((c) => (c.id === course.id ? { ...c, kit } : c)))} />
   )
 }

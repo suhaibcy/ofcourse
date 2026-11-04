@@ -7,6 +7,22 @@ export const sampleCourse: Course = {
   title: 'Parabolas',
   summary: 'A hand-written sample that shows what each lesson type feels like.',
   origin: 'sample',
+  subject: 'Math',
+  level: 'Some background',
+  kit: {
+    summary: 'A parabola is the curve made by a quadratic equation. In y = a(x - h)² + k, the vertex is at (h, k), and the sign of a tells you whether it opens up or down.',
+    keyIdeas: [
+      'Positive a opens up, and negative a opens down',
+      'Factoring only works once one side equals 0',
+      'The discriminant, b² - 4ac, counts the real solutions',
+    ],
+    terms: [
+      { term: 'Vertex', meaning: 'The turning point of the curve' },
+      { term: 'Root', meaning: 'Where the curve crosses the x-axis' },
+      { term: 'Discriminant', meaning: 'b² - 4ac, the part under the square root' },
+    ],
+    dates: [],
+  },
   concepts: [
     { id: 'shape', name: 'How a, h, and k shape the curve' },
     { id: 'factor', name: 'Solving by factoring' },

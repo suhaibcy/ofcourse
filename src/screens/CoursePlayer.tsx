@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { BackHeader } from '../components/BackHeader'
 import { CalcIt } from '../components/blocks/CalcIt'
 import { CatchIt } from '../components/blocks/CatchIt'
+import { CodeLab } from '../components/blocks/CodeLab'
 import { FillBlanks } from '../components/blocks/FillBlanks'
 import { FlipCards } from '../components/blocks/FlipCards'
 import { MatchUp } from '../components/blocks/MatchUp'
@@ -119,6 +120,7 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
         {block.type === 'explain' && <ExplainBack block={block} aiOn={aiOn} {...shared} />}
         {block.type === 'voice' && <SayAndFly block={block} aiOn={aiOn} {...shared} />}
         {block.type === 'catch' && <CatchIt block={block} {...shared} />}
+        {block.type === 'code' && <CodeLab block={block} {...shared} />}
         {block.type === 'match' && <MatchUp block={block} {...shared} />}
         {block.type === 'flip' && <FlipCards block={block} {...shared} />}
         {block.type === 'fill' && <FillBlanks block={block} {...shared} />}

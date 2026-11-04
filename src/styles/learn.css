@@ -276,6 +276,45 @@
 .choice--wobble { border-color: var(--overdue); animation: wobble 320ms var(--ease-out); }
 @keyframes wobble { 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
 
+/* The Learn hub */
+.rank-card { display: flex; align-items: center; gap: var(--space-12); padding: var(--space-12); margin-bottom: var(--space-12); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.rank-card__name { margin: 0; font-size: 20px; font-weight: 700; }
+.rank-card .muted { margin: 0; }
+.make-card { display: grid; gap: var(--space-8); padding: var(--space-16); background: var(--primary-soft); border-radius: var(--radius-lg); }
+.make-card .muted { margin: 0; }
+.course-row .mastery__track { margin-top: var(--space-4); height: 6px; }
+.course-tags { display: flex; flex-wrap: wrap; gap: var(--space-8); margin: var(--space-8) 0; }
+.learn-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--space-4); margin: var(--space-12) 0; padding: var(--space-4); background: var(--tag-bg); border-radius: var(--radius-md); }
+.learn-tab { min-height: 40px; padding: var(--space-8) var(--space-12); font: 500 15px/1.1 var(--font-sans); color: var(--text-secondary); background: transparent; border: 0; border-radius: var(--radius-xs); cursor: pointer; touch-action: manipulation; }
+.learn-tab--on { color: var(--text-primary); background: var(--surface); box-shadow: 0 1px 3px rgba(35, 32, 28, 0.15); }
+.chip-row { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.chip-row .learn-tab { background: var(--tag-bg); }
+.chip-row .learn-tab--on { color: var(--on-primary); background: var(--primary); }
+.challenge-card { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); margin-top: var(--space-12); padding: var(--space-16); background: #fdeccb; border-radius: var(--radius-lg); }
+.challenge-card .muted { margin: var(--space-4) 0 0; font-size: 14px; color: var(--tag-ink); }
+.mastery__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); font-size: 15px; }
+.level { flex: none; padding: var(--space-4) var(--space-8); font-size: 13px; font-weight: 600; color: var(--tag-ink); background: var(--tag-bg); border-radius: var(--radius-full); }
+.level--familiar { color: var(--on-primary); background: #6f86c9; }
+.level--proficient { color: var(--on-primary); background: var(--primary); }
+.level--mastered { color: var(--on-primary); background: var(--success); }
+
+.notes-kit__summary { margin: 0; padding: var(--space-16); font-size: 16px; line-height: 1.45; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.notes-kit__ideas { margin: 0; padding-left: var(--space-20); display: grid; gap: var(--space-8); }
+.notes-kit__terms { display: grid; gap: var(--space-8); margin: 0 0 var(--space-16); }
+.notes-kit__terms dt { font-weight: 600; }
+.notes-kit__terms dd { margin: 0; color: var(--text-secondary); }
+.date-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: var(--space-12); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.plan-list { margin: 0 0 var(--space-16); padding: 0; list-style: none; display: grid; gap: var(--space-8); }
+.plan-list li { display: grid; gap: var(--space-4); padding: var(--space-12); font-size: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); }
+
+/* Code lab */
+.code-editor { width: 100%; padding: var(--space-12); font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #f5f2ec; background: #23201c; border: 0; border-radius: var(--radius-md); resize: vertical; tab-size: 2; white-space: pre; overflow-x: auto; }
+.code-goal { padding: var(--space-8) var(--space-12); font-size: 13px; color: var(--text-secondary); background: var(--tag-bg); border-radius: var(--radius-md); }
+.code-goal pre { margin: var(--space-4) 0 0; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text-primary); white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-goal--right { background: #eaf5ee; }
+.code-goal--wrong,
+.code-goal--error { background: #fbeeec; }
+
 /* Drag and drop */
 .drag-chip {
   position: relative; z-index: 2;
