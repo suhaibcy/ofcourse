@@ -1,0 +1,191 @@
+@import './styles/tokens.css';
+@import './styles/components.css';
+@import './styles/screens.css';
+@import './styles/motion.css';
+@import './styles/onboarding.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* One phone-width column, centered on bigger screens.
+   The safe-area padding keeps content clear of the iPhone notch and home bar. */
+.app {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: calc(var(--space-32) + env(safe-area-inset-top, 0px)) var(--space-16)
+    calc(var(--tabbar-height) + var(--space-48) + env(safe-area-inset-bottom, 0px));
+}
+
+.greeting {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.summary {
+  margin: var(--space-8) 0 0;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.sample-note {
+  margin: var(--space-32) 0 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+/* A white card around each group of rows (Planned for today, Overdue, Due today,
+   This week, Later), so sections stand out from the background. Like iOS's
+   inset grouped lists (Settings, Reminders), with the title inside the card to
+   match the Your week card. */
+.group-card {
+  margin-top: var(--space-12);
+  padding: 0 var(--space-16);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.group-card > .section {
+  padding: var(--space-16) 0 var(--space-4);
+}
+.group-card .row:last-child,
+.group-card .agenda__item:last-child {
+  border-bottom: 0;
+}
+.group-card__more {
+  display: block;
+  width: 100%;
+  min-height: var(--touch-target);
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--primary);
+  cursor: pointer;
+}
+.group-card__more:active {
+  opacity: 0.6;
+}
+.group-card--overdue .section__label,
+.group-card--overdue .section__count {
+  color: var(--overdue);
+}
+
+/* Your week card (top of Today). Idea from Bevel's home card. */
+.week-card {
+  margin: var(--space-20) 0 var(--space-8);
+  padding: var(--space-16);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.week-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+.week-card__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.week-card__updated {
+  min-height: var(--touch-target);
+  margin: calc(var(--space-12) * -1) calc(var(--space-8) * -1);
+  padding: 0 var(--space-8);
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.week-card__rings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+.ring {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+}
+.ring__fill {
+  transition: stroke-dashoffset var(--dur-slow) var(--ease-out);
+}
+.ring__value {
+  position: absolute;
+  top: 32px;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.ring__label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.week-card__unplanned {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: var(--touch-target);
+  margin-top: var(--space-12);
+  padding: 0 var(--space-12);
+  background: var(--background);
+  border: 0;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.week-card__unplanned:active {
+  background: var(--surface-pressed);
+}
+.week-card__plan-link {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  color: var(--primary);
+}
+.week-card__nudge {
+  margin: var(--space-12) 0 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+/* Planning several assignments in a row (from "4 unplanned") */
+.plan-queue__item {
+  animation: screen-push var(--dur-med) var(--ease-out); /* next one slides in from the right */
+}
+.plan-queue__title {
+  margin: var(--space-4) 0;
+  font-size: 20px;
+  font-weight: 600;
+}

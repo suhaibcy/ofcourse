@@ -1,0 +1,115 @@
+/*
+  Design tokens: every color, size, and spacing value the app uses.
+  Copied from the "Study Dashboard" design system (tokens.json):
+  https://claude.ai/artifact/9mpYufuGKfaPFUoNhfZhM8
+  Change a value here and it changes everywhere in the app.
+*/
+
+:root {
+  /* Colors (light mode) */
+  --primary: #2f5bd3;
+  --primary-pressed: #244ab5;
+  --on-primary: #ffffff;
+  --primary-soft: #e9eefb;
+  --ring-track: #cdd8f5; /* empty part of a progress ring: visible on white, primary still 4.1:1 against it */
+  --background: #faf8f5;
+  --surface: #ffffff;
+  --surface-pressed: #f2eee8;
+  --text-primary: #23201c;
+  --text-secondary: #6b645c;
+  --text-tertiary: #756d63;
+  --border: #e8e3dc;
+  --control-off: #938a7f;
+  --overdue: #b93a2e;
+  --due-soon: #9a6208;
+  --success: #2e7d4f;
+  --tag-bg: #f0ece6;
+  --tag-ink: #4a443d;
+  --class-1: #3e9c8f;
+  --class-2: #ad7b1c;
+  --class-3: #9a6bb5;
+  --class-4: #5e9e6e;
+  --class-5: #c46a7e;
+  --class-6: #d07a3c;
+  --class-7: #4f98c2;
+  --class-8: #8c8a3e;
+  --scrim: rgba(35, 32, 28, 0.32);
+  --shadow-sheet: 0 -8px 32px rgba(35, 32, 28, 0.12);
+  --focus-ring: 0 0 0 3px rgba(47, 91, 211, 0.35);
+
+  /* Type */
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  /* Spacing (4px grid) */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+
+  /* Corners */
+  --radius-xs: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Layout */
+  --content-max: 480px;
+  --touch-target: 44px;
+  --control-height: 48px;
+  --row-min-height: 60px;
+  --checkbox-size: 24px;
+  --dot-size: 8px;
+  --tabbar-height: 60px;
+
+  /* Motion: how fast things move and how they slow down.
+     ease-out starts fast and settles gently (most movement).
+     ease-spring overshoots a little, then settles (small "pops"). */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --dur-slow: 340ms;
+
+  color-scheme: light;
+}
+
+/* Dark mode: parked for now. ofCourse is light-only for v1 (decision 2026-10-12).
+   These colors stay so dark mode can come back later as a setting:
+   adding data-theme="dark" to the <html> tag turns it on. */
+:root[data-theme='dark'] {
+  --primary: #86a6f5;
+  --primary-pressed: #a7bff8;
+  --on-primary: #1c1a17;
+  --primary-soft: #262d40;
+  --background: #1c1a17;
+  --surface: #24211e;
+  --surface-pressed: #2b2824;
+  --text-primary: #f2eee8;
+  --text-secondary: #a59d93;
+  --text-tertiary: #948c82;
+  --border: #34302b;
+  --control-off: #7a7269;
+  --overdue: #f08574;
+  --due-soon: #e5b45a;
+  --success: #6cc08f;
+  --tag-bg: #302c28;
+  --tag-ink: #cfc8be;
+  --class-1: #5cc2b5;
+  --class-2: #e0b060;
+  --class-3: #b994d0;
+  --class-4: #86c496;
+  --class-5: #e0919f;
+  --class-6: #e89c66;
+  --class-7: #7db8dc;
+  --class-8: #b5b266;
+  --scrim: rgba(0, 0, 0, 0.5);
+  --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.5);
+  --focus-ring: 0 0 0 3px rgba(134, 166, 245, 0.45);
+
+  color-scheme: dark;
+}

@@ -1,0 +1,42 @@
+# Secrets: never commit these (feed links, API keys)
+.env
+.env.*
+!.env.example
+
+# Installed packages (npm re-downloads them)
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+dist-ssr/
+*.local
+build/
+.netlify/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Downloaded Claude skills (their own GitHub repos; Apple's guideline text can't go in a public repo).
+# Our own wrap-up skill is the exception, so both computers have it.
+.claude/skills/*
+!.claude/skills/wrap-up/
+
+# Obsidian: per-computer window layout (shared settings are committed)
+.obsidian/workspace*.json
+.obsidian/cache
+
+# Private study notes (their own private repo, never in this one)
+learn/
