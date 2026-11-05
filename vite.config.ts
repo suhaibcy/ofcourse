@@ -61,7 +61,7 @@ function courseApi(env: Record<string, string>): Plugin {
       for (const name of ['AI_ENABLED', 'MODEL_API_KEY', 'AI_MODEL']) {
         if (env[name] !== undefined) process.env[name] = env[name]
       }
-      for (const route of ['status', 'course', 'explain', 'say']) {
+      for (const route of ['status', 'course', 'explain', 'say', 'tutor']) {
         server.middlewares.use(`/api/${route}`, async (req, res) => {
           let body = ''
           for await (const chunk of req) body += chunk

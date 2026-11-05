@@ -22,6 +22,14 @@ export type Outline = {
   units: { title: string; goal: string; conceptIds: string[] }[]
 }
 
+// One block from the AI's format. The id always comes from our code.
+export function fromWireBlock(block: WireBlock, id: string): Block {
+  if (block.type === 'sandbox') return { ...block, id, target: toMap(block.target) } as Block
+  if (block.type === 'calc') return { ...block, id, values: toMap(block.values) } as Block
+  if (block.type === 'voice') return { ...block, id, prompt: 'Say each word out loud to unlock the game.' } as Block // it asks nothing else
+  return { ...block, id } as Block
+}
+
 function toMap(list: unknown): Record<string, number> {
   return Object.fromEntries(((list ?? []) as NamedValue[]).map((item) => [item.name, item.value]))
 }
@@ -38,12 +46,7 @@ export function fromWireUnit(wire: WireUnit, unitTitle: string, unitNumber: numb
       kind: lesson.kind,
       source: lesson.source,
       teach: lesson.kind === 'quiz' ? [] : lesson.teach,
-      blocks: lesson.blocks.map((block, b) => {
-        const id = `${lessonId}-b${b + 1}`
-        if (block.type === 'sandbox') return { ...block, id, target: toMap(block.target) } as Block
-        if (block.type === 'calc') return { ...block, id, values: toMap(block.values) } as Block
-        return { ...block, id } as Block
-      }),
+      blocks: lesson.blocks.map((block, b) => fromWireBlock(block, `${lessonId}-b${b + 1}`)),
     }
   })
 }

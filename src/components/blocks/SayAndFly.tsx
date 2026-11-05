@@ -21,6 +21,7 @@ export function SayAndFly({ block, onMiss, onFinish, aiOn }: BlockProps<VoiceBlo
   const [heard, setHeard] = useState('')
   const [tries, setTries] = useState(0)
   const [missed, setMissed] = useState(false)
+  const unchecked = useRef(false) // a word went by in practice mode, so nothing confirmed it
   const [activeSyllable, setActiveSyllable] = useState(-1)
   const [error, setError] = useState('')
   const stopRecording = useRef<(() => void) | null>(null)
@@ -49,6 +50,7 @@ export function SayAndFly({ block, onMiss, onFinish, aiOn }: BlockProps<VoiceBlo
       mic = await openMic()
     } catch {
       setError('Hoot needs the microphone for this one. You can say it to yourself and keep going.')
+      unchecked.current = true
       setState('practice')
       return
     }
@@ -59,6 +61,7 @@ export function SayAndFly({ block, onMiss, onFinish, aiOn }: BlockProps<VoiceBlo
     stopRecording.current = null
     mic.close()
     if (!aiOn) {
+      unchecked.current = true
       setState('practice')
       return
     }
@@ -78,6 +81,7 @@ export function SayAndFly({ block, onMiss, onFinish, aiOn }: BlockProps<VoiceBlo
       }
     } catch {
       setError('Hoot could not listen just now. Say it to yourself and keep going.')
+      unchecked.current = true
       setState('practice')
     }
   }
@@ -105,14 +109,14 @@ export function SayAndFly({ block, onMiss, onFinish, aiOn }: BlockProps<VoiceBlo
     )
   }
 
-  if (phase === 'fly') return <HootFlight word={lastWord} onWin={() => { chime('win'); setPhase('won') }} onSkip={() => onFinish(!missed)} />
+  if (phase === 'fly') return <HootFlight word={lastWord} onWin={() => { chime('win'); setPhase('won') }} onSkip={() => onFinish(!missed, { unverified: unchecked.current })} />
 
   if (phase === 'won') {
     return (
       <div className="block block--center">
         <Hoot pose="celebrate" size={108} animate decorative />
         <p className="block__prompt">You spelled {lastWord.toUpperCase()} with your voice!</p>
-        <Button block onClick={() => onFinish(!missed)}>Finish</Button>
+        <Button block onClick={() => onFinish(!missed, { unverified: unchecked.current })}>Finish</Button>
       </div>
     )
   }
@@ -154,7 +158,7 @@ export function SayAndFly({ block, onMiss, onFinish, aiOn }: BlockProps<VoiceBlo
       )}
       {state === 'practice' && (
         <>
-          <p className="feedback" role="status">Practice mode: Hoot isn't checking words right now.</p>
+          <p className="feedback" role="status">Practice mode: Hoot isn't checking words right now, so this won't count toward mastery.</p>
           <Button block onClick={nextWord}>{index === block.words.length - 1 ? 'Unlock the game' : 'I said it, next'}</Button>
         </>
       )}
@@ -184,7 +188,10 @@ function HootFlight({ word, onWin, onSkip }: { word: string; onWin: () => void; 
     async function begin() {
       try {
         mic = await openMic()
-        if (closed) mic.close()
+        if (closed) {
+          mic.close()
+          return
+        }
       } catch {
         setNoMic(true)
         setMessage('Press and hold to fly up. Let go to glide down.')

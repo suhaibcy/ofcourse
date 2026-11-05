@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AskButton } from './components/AskButton'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { TabBar, type TabId } from './components/TabBar'
 import { CalendarScreen } from './screens/CalendarScreen'
 import { ClassesScreen } from './screens/ClassesScreen'
@@ -9,6 +10,7 @@ import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PlannerScreen } from './screens/PlannerScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { TodayScreen } from './screens/TodayScreen'
+import { PLANNER_HASH, routeFor } from './lib/route'
 import { useAppData } from './state/appDataContext'
 
 // Pages opened from the profile button on Today (not tabs of their own).
@@ -29,6 +31,7 @@ function App() {
   const [page, setPage] = useState<Page>(null)
   const [transition, setTransition] = useState<Transition>('tab')
   const [learnHash, setLearnHash] = useState(window.location.hash)
+  const [learnKey, setLearnKey] = useState(0) // a new key rebuilds Learn after a crash
 
   useEffect(() => {
     const onChange = () => setLearnHash(window.location.hash)
@@ -49,12 +52,14 @@ function App() {
     window.scrollTo(0, 0)
   }
 
-  // Courses have their own link (#/learn), so they open before the onboarding check.
-  if (learnHash.startsWith('#/learn')) {
+  // Learn opens before the onboarding check. Leaving it for the planner is an explicit choice.
+  if (routeFor(learnHash, onboarded) === 'learn') {
     return (
-      <main className="app">
+      <main className="app app--learn">
         <div className="screen screen--tab">
-          <LearnScreen noteId={learnHash.split('note=')[1]} onExit={() => { window.location.hash = '' }} />
+          <ErrorBoundary actionLabel="Back to Learn" onReset={() => setLearnKey((n) => n + 1)}>
+            <LearnScreen key={learnKey} noteId={learnHash.split('note=')[1]} onExit={() => { window.location.hash = PLANNER_HASH }} />
+          </ErrorBoundary>
         </div>
       </main>
     )

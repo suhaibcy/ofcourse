@@ -24,7 +24,13 @@ export function MatchUp({ block, onMiss, onFinish }: BlockProps<MatchBlock>) {
       setWrong(meaning)
       setMissed(true)
       chime('wrong')
-      onMiss()
+      onMiss({
+        question: `${block.prompt}\nTerm: ${block.pairs[term].term}`,
+        selected: block.pairs[meaning].meaning,
+        correct: block.pairs[term].meaning,
+        feedback: 'Not a match. Try another.',
+        protect: block.pairs.length - done.length > 2,
+      })
     }
   }
 

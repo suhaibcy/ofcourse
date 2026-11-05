@@ -17,6 +17,7 @@ export function ExplainBack({ block, onFinish, aiOn }: BlockProps<ExplainBlock> 
   const [selfChecked, setSelfChecked] = useState<number[]>([])
   const [error, setError] = useState('')
   const recorder = useRef<MediaRecorder | null>(null)
+  const left = useRef(false) // the student left, so a recording in progress must not be sent
 
   useEffect(() => {
     if (state !== 'recording') return
@@ -29,8 +30,12 @@ export function ExplainBack({ block, onFinish, aiOn }: BlockProps<ExplainBlock> 
   }, [seconds])
 
   // Let go of the microphone if the student leaves mid-recording.
-  useEffect(() => () => {
-    if (recorder.current?.state === 'recording') recorder.current.stop()
+  useEffect(() => {
+    left.current = false
+    return () => {
+      left.current = true
+      if (recorder.current?.state === 'recording') recorder.current.stop()
+    }
   }, [])
 
   async function start() {
@@ -42,6 +47,7 @@ export function ExplainBack({ block, onFinish, aiOn }: BlockProps<ExplainBlock> 
       mediaRecorder.ondataavailable = (e) => chunks.push(e.data)
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop())
+        if (left.current) return
         setState('checking')
         try {
           const wav = await recordingToWav(new Blob(chunks, { type: mediaRecorder.mimeType }))
@@ -96,7 +102,7 @@ export function ExplainBack({ block, onFinish, aiOn }: BlockProps<ExplainBlock> 
 
       {state === 'self' && (
         <>
-          <p className="muted">Say your answer out loud, then tick each point you covered.</p>
+          <p className="muted">Say your answer out loud, then tick each point you covered. A self-check won't count toward mastery.</p>
           <ul className="point-list">
             {block.points.map((point, i) => (
               <li key={i}>
@@ -108,7 +114,7 @@ export function ExplainBack({ block, onFinish, aiOn }: BlockProps<ExplainBlock> 
               </li>
             ))}
           </ul>
-          <Button block onClick={() => onFinish(selfChecked.length === block.points.length)}>Finish</Button>
+          <Button block onClick={() => onFinish(selfChecked.length === block.points.length, { unverified: true })}>Finish</Button>
         </>
       )}
     </div>

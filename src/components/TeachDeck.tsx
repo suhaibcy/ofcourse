@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { TeachCard } from '../lib/course'
 import { chime, speak } from '../lib/mic'
+import type { MissDetail, TutorRequest } from '../lib/tutor'
 import { Button } from './Button'
 import { CurveGraph } from './CurveGraph'
 import { Icon } from './Icon'
+import { TutorPanel } from './TutorPanel'
 
 // What Hoot reads aloud for a card.
 function spokenText(card: TeachCard): string {
@@ -61,7 +63,7 @@ function ExploreCard({ card, onReady }: { card: Extract<TeachCard, { type: 'expl
 }
 
 // A quick check on what was just taught. It isn't graded, so a wrong tap only teaches.
-function CheckCard({ card, onReady }: { card: Extract<TeachCard, { type: 'check' }>; onReady: () => void }) {
+function CheckCard({ card, onReady, onMiss }: { card: Extract<TeachCard, { type: 'check' }>; onReady: () => void; onMiss: (miss: MissDetail) => void }) {
   const [picked, setPicked] = useState<number | null>(null)
   const right = picked !== null && card.choices[picked].correct
   return (
@@ -72,7 +74,13 @@ function CheckCard({ card, onReady }: { card: Extract<TeachCard, { type: 'check'
         {card.choices.map((choice, i) => (
           <button key={i} type="button" disabled={right}
             className={`choice ${i === picked ? (choice.correct ? 'choice--right' : 'choice--wrong') : ''}`}
-            onClick={() => { setPicked(i); chime(choice.correct ? 'right' : 'wrong'); if (choice.correct) onReady() }}>
+            onClick={() => {
+              setPicked(i)
+              chime(choice.correct ? 'right' : 'wrong')
+              if (choice.correct) { onReady(); return }
+              const answer = card.choices.find((c) => c.correct)
+              onMiss({ question: card.question, selected: choice.text, correct: answer?.text ?? '', feedback: choice.why, reference: answer?.why, protect: card.choices.length > 2 })
+            }}>
             {choice.text}
           </button>
         ))}
@@ -85,15 +93,21 @@ function CheckCard({ card, onReady }: { card: Extract<TeachCard, { type: 'check'
 type TeachDeckProps = {
   cards: TeachCard[]
   onDone: () => void
+  // Only given when the AI is on. Without them, no help buttons appear.
+  askAboutCard?: (card: TeachCard, ask: string) => TutorRequest
+  askAboutMiss?: (miss: MissDetail) => TutorRequest
+  onCheckMiss?: (miss: MissDetail) => void
+  onTutorAsk?: () => void
 }
 
 // The teaching part of a lesson, one idea per screen. Examples and checks ask the
 // student to do something first, so they can't just tap through without reading.
-export function TeachDeck({ cards, onDone }: TeachDeckProps) {
+export function TeachDeck({ cards, onDone, askAboutCard, askAboutMiss, onCheckMiss, onTutorAsk }: TeachDeckProps) {
   const [index, setIndex] = useState(0)
   const card = cards[index]
   const needsAction = card.type === 'example' || card.type === 'check'
   const [readyFor, setReadyFor] = useState(-1)
+  const [miss, setMiss] = useState<{ detail: MissDetail; count: number; card: number } | null>(null)
   const ready = !needsAction || readyFor === index
   const isLast = index === cards.length - 1
 
@@ -122,7 +136,7 @@ export function TeachDeck({ cards, onDone }: TeachDeckProps) {
       )}
       {card.type === 'example' && <ExampleCard card={card} onReady={() => setReadyFor(index)} />}
       {card.type === 'explore' && <ExploreCard card={card} onReady={() => setReadyFor(index)} />}
-      {card.type === 'check' && <CheckCard card={card} onReady={() => setReadyFor(index)} />}
+      {card.type === 'check' && <CheckCard card={card} onReady={() => setReadyFor(index)} onMiss={(detail) => { onCheckMiss?.(detail); setMiss((m) => ({ detail, count: (m?.count ?? 0) + 1, card: index })) }} />}
       {card.type === 'compare' && (
         <>
           <h2 className="teach__heading">{card.heading}</h2>
@@ -148,6 +162,11 @@ export function TeachDeck({ cards, onDone }: TeachDeckProps) {
           <ul className="remember">{card.points.map((point) => <li key={point}><Icon name="check" size={18} /><span>{point}</span></li>)}</ul>
         </>
       )}
+
+      {askAboutMiss && miss?.card === index && (
+        <TutorPanel key={miss.count} label="Hoot, why was that wrong?" fallback={miss.detail.feedback} onAsk={onTutorAsk} build={() => askAboutMiss(miss.detail)} />
+      )}
+      {askAboutCard && <TutorPanel key={`card-${index}`} label="Ask Hoot about this lesson" allowQuestion onAsk={onTutorAsk} build={(ask) => askAboutCard(card, ask)} />}
 
       <div className="teach__nav">
         {index > 0 && <Button variant="secondary" onClick={() => go(index - 1)}>Back</Button>}

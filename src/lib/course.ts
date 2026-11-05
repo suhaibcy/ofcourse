@@ -124,6 +124,7 @@ export type StudyKit = {
   summary: string
   keyIdeas: string[]
   terms: { term: string; meaning: string }[]
+  emphasized?: string[] // what a lecture's words stress: exam mentions, repetition. Never tone of voice
   dates: { title: string; date: string; kind: string }[] // date is a day key, or "" if none was written down
 }
 
@@ -162,6 +163,7 @@ export type Course = {
   lessons: Lesson[]
   basedOn?: 'materials' | 'general' // built from the learner's own work, or the model's general knowledge
   checks?: { checkedQuestions: number; removedBlocks: number; flaggedCards?: number } // what the checker did
+  originalProblems?: string[] // the learner's real assignment questions, so new practice never answers them
 }
 
 export function allBlocks(course: Course): Block[] {

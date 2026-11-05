@@ -6,7 +6,7 @@ import { shuffled, type BlockProps } from './blockTypes'
 import { DragChip } from './DragChip'
 
 // Drag each card into the group it belongs in (or just tap the group).
-export function SortIt({ block, onMiss, onFinish }: BlockProps<SortBlock>) {
+export function SortIt({ block, onMiss, onMove, onFinish }: BlockProps<SortBlock>) {
   const [items] = useState(() => shuffled(block.items))
   const [index, setIndex] = useState(0)
   const [placed, setPlaced] = useState<number[]>(() => block.buckets.map(() => 0))
@@ -24,12 +24,20 @@ export function SortIt({ block, onMiss, onFinish }: BlockProps<SortBlock>) {
       setWrongBucket(null)
       setPlaced(placed.map((count, i) => (i === bucket ? count + 1 : count)))
       setIndex(index + 1)
+      onMove?.()
     } else {
       chime('wrong')
       setFeedback({ right: false, text: `Not ${block.buckets[bucket]}. Look at it again.` })
       setWrongBucket(bucket)
       setMissed(true)
-      onMiss()
+      onMiss({
+        question: `${block.prompt}\nItem: ${item.text}\nGroups: ${block.buckets.join(', ')}`,
+        selected: block.buckets[bucket],
+        correct: block.buckets[item.bucket],
+        feedback: `Not ${block.buckets[bucket]}. Look at it again.`,
+        reference: item.why,
+        protect: block.buckets.length > 2,
+      })
     }
   }
 

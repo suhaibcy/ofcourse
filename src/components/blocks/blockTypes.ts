@@ -1,8 +1,12 @@
+import type { MissDetail } from '../../lib/tutor'
+
 // What every lesson block gets from the player.
 export type BlockProps<T> = {
   block: T
-  onMiss: () => void // a wrong try: Hoot reacts, and the student can try again
-  onFinish: (firstTry: boolean) => void // the block is done
+  onMiss: (detail?: MissDetail) => void // a wrong try: Hoot reacts, and the student can try again. Details let Hoot help.
+  onMove?: () => void // the question on screen changed, so earlier help no longer applies
+  onHint?: () => void // the student asked for the block's own hint
+  onFinish: (firstTry: boolean, check?: { unverified?: boolean }) => void // the block is done
 }
 
 // A new order for a list, never the one it started in (so there's always something to do).

@@ -46,6 +46,7 @@ export function checkBlock(block: Block): string[] {
       break
     case 'calc':
       if (evaluate(block.formula, block.values) === null) problems.push('formula has no answer')
+      if (!/[-+*/^(]/.test(block.formula)) problems.push('calc needs a real calculation; use fill for a word answer')
       if (block.tolerance < 0) problems.push('negative tolerance')
       break
     case 'explain':
@@ -169,6 +170,24 @@ export function copiedBlocks(course: Course, originals: string[]): string[] {
     .map((block) => block.id)
 }
 
+// A block's actual content as text, for spotting repeats. Prompts alone won't do:
+// many activities share one like "Drag each term onto its meaning."
+export function blockText(block: Block): string {
+  switch (block.type) {
+    case 'step': return `${block.problem} ${block.steps.map((s) => s.prompt).join(' ')}`
+    case 'spot': return `${block.problem} ${block.lines.join(' ')}`
+    case 'calc': return `${block.prompt} ${Object.values(block.values).join(' ')}`
+    case 'sandbox': return `${block.prompt} ${block.formula} ${Object.values(block.target).join(' ')}`
+    case 'order': return block.items.join(' ')
+    case 'sort': case 'catch': return block.items.map((item) => item.text).join(' ')
+    case 'match': case 'flip': return block.pairs.map((pair) => `${pair.term} ${pair.meaning}`).join(' ')
+    case 'fill': return block.sentence
+    case 'code': return block.starter
+    case 'explain': return block.prompt
+    case 'voice': return block.words.map((w) => w.word).join(' ')
+  }
+}
+
 // The question with its answer removed, for a second AI call to solve on its own.
 export type BlindQuestion = { id: string; question: string; options: string[] }
 
@@ -216,6 +235,27 @@ export function removeBlocks(course: Course, ids: string[]): Course {
 // keys hidden from it: its job is finding errors in what the lesson says.
 export function teachingForReview(course: Course) {
   return course.lessons.flatMap((lesson) => (lesson.teach ?? []).map((card, index) => ({ lesson: lesson.id, card: index, content: card })))
+}
+
+// Teaching cards that fail the plain-code checks, in the same shape the fact-checker reports.
+export function brokenTeachCards(course: Course): { lesson: string; card: number }[] {
+  return course.lessons.flatMap((lesson) => (lesson.teach ?? []).flatMap((card, index) =>
+    checkTeachCard(card).length > 0 ? [{ lesson: lesson.id, card: index }] : []))
+}
+
+// "From your work" must really be from their work. When the source is plain text, a
+// quote that can't be found there is removed instead of being shown as theirs.
+export function dropUnprovenQuotes(course: Course, sourceText: string): Course {
+  const simple = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  const source = simple(sourceText)
+  return {
+    ...course,
+    lessons: course.lessons.map((lesson) => {
+      const quote = lesson.source?.quote
+      if (!quote) return lesson
+      return source.includes(simple(quote)) ? lesson : { ...lesson, source: undefined }
+    }),
+  }
 }
 
 // The course without the given cards, ignoring any issue that points nowhere.

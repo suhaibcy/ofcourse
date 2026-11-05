@@ -2,11 +2,14 @@ import { allBlocks, type Block, type Course, type Lesson } from './course.ts'
 
 // What the student did on each block: did they get it on the first try?
 // `fixed` means they missed it, then got it right in Fix it.
-export type Progress = Record<string, { firstTry: boolean; fixed?: boolean }>
+// `unverified` means nothing objective confirmed it (practice mode, or a self-check):
+// it finishes the activity and earns finishing points, but it can't raise mastery.
+export type Progress = Record<string, { firstTry: boolean; fixed?: boolean; unverified?: boolean }>
 
-export function recordResult(progress: Progress, blockId: string, correct: boolean): Progress {
-  if (progress[blockId]) return progress // only the first attempt counts toward mastery
-  return { ...progress, [blockId]: { firstTry: correct } }
+export function recordResult(progress: Progress, blockId: string, correct: boolean, unverified = false): Progress {
+  const existing = progress[blockId]
+  if (existing && (!existing.unverified || unverified)) return progress // only the first checked attempt counts toward mastery
+  return { ...progress, [blockId]: unverified ? { firstTry: false, unverified: true } : { firstTry: correct } }
 }
 
 // A clean retry in Fix it clears the block from the list and earns partial credit.
@@ -31,7 +34,7 @@ export function levelFor(tried: number, rightFirstTry: number, fixed: number): M
 // For each concept: percent right on the first try (null = not tried) and its level.
 export function masteryByConcept(course: Course, progress: Progress) {
   return course.concepts.map((concept) => {
-    const tried = allBlocks(course).filter((b) => b.conceptId === concept.id && progress[b.id])
+    const tried = allBlocks(course).filter((b) => b.conceptId === concept.id && progress[b.id] && !progress[b.id].unverified)
     const right = tried.filter((b) => progress[b.id].firstTry).length
     const fixed = tried.filter((b) => progress[b.id].fixed).length
     return {
@@ -60,7 +63,7 @@ export function weakestConcepts(course: Course, progress: Progress): string[] {
 
 // The blocks to practice again: anything missed on the first try.
 export function missedBlocks(course: Course, progress: Progress): Block[] {
-  return allBlocks(course).filter((block) => progress[block.id] && !progress[block.id].firstTry && !progress[block.id].fixed)
+  return allBlocks(course).filter((block) => progress[block.id] && !progress[block.id].firstTry && !progress[block.id].fixed && !progress[block.id].unverified)
 }
 
 // A lesson is finished when its teaching was read and every activity was tried.

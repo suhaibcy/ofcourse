@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BackHeader } from '../components/BackHeader'
 import { Button } from '../components/Button'
+import { PLANNER_HASH } from '../lib/route'
 import { useAppData } from '../state/appDataContext'
 
 export function SettingsScreen({ onBack }: { onBack: () => void }) {
@@ -27,7 +28,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
             <div className="confirm">
               <span>Erase everything you added and go back to the sample data?</span>
               <div className="confirm__actions">
-                <Button variant="destructive" small onClick={() => { resetAll(); setConfirmReset(false) }}>Erase</Button>
+                <Button variant="destructive" small onClick={() => { window.location.hash = PLANNER_HASH; resetAll(); setConfirmReset(false) }}>Erase</Button>
                 <Button variant="secondary" small onClick={() => setConfirmReset(false)}>Cancel</Button>
               </div>
             </div>

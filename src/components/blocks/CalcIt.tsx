@@ -21,7 +21,14 @@ export function CalcIt({ block, onMiss, onFinish }: BlockProps<CalcBlock>) {
     } else {
       setMisses(misses + 1)
       setState('wrong')
-      onMiss()
+      onMiss({
+        question: block.prompt,
+        selected: text.trim() || '(left blank)',
+        correct: String(answer),
+        feedback: 'Not quite. Check each part and try again.',
+        reference: `${block.explain} Formula: ${block.formula}`,
+        protect: true,
+      })
     }
   }
 

@@ -33,7 +33,14 @@ export function PutInOrder({ block, onMiss, onFinish }: BlockProps<OrderBlock>) 
       setPose('oops')
       react('shake')
       chime('wrong')
-      onMiss()
+      onMiss({
+        question: `${block.prompt}\nDone so far: ${block.items.slice(0, placed).join(' > ') || 'nothing yet'}\nWhat comes next?`,
+        selected: item,
+        correct: block.items[placed],
+        feedback: 'Not that one yet. What has to happen first?',
+        reference: block.explain,
+        protect: total - placed > 2,
+      })
     }
   }
 

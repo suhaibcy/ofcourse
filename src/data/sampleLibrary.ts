@@ -1,5 +1,6 @@
 import type { Course } from '../lib/course.ts'
 import { sampleCourse } from './sampleCourse.ts'
+import { natureNurture } from './sampleNature.ts'
 
 // Starter courses written in advance, so there's something to explore in every subject.
 // The app labels them as samples and never says Hoot or Meta's models generated them.
@@ -221,4 +222,4 @@ const coding: Course = {
   ],
 }
 
-export const sampleLibrary: Course[] = [sampleCourse, science, writing, coding]
+export const sampleLibrary: Course[] = [natureNurture, sampleCourse, science, writing, coding]

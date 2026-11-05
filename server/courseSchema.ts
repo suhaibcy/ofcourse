@@ -26,7 +26,7 @@ export const readingSchema = strict({
   topic: str,
   subject: { type: 'string', enum: ['Math', 'Science', 'Reading & writing', 'Coding', 'History & social studies', 'Economics & business', 'Languages', 'Other'] },
   usedMaterials: bool,
-  kit: strict({ ...noteFields, dates: list(strict({ title: str, date: str, kind: str })) }),
+  kit: strict({ ...noteFields, emphasized: list(str), dates: list(strict({ title: str, date: str, kind: str })) }),
   concepts: list(strict({ name: str, quote: str, photo: num })),
   originalProblems: list(str),
   isReadable: bool,
@@ -75,12 +75,26 @@ export const unitSchema = strict({
   })),
 })
 
+// Practice uses the same block shapes, minus code labs and voice activities.
+const practiceTypes = new Set(['step', 'order', 'spot', 'sort', 'calc', 'catch', 'match', 'flip', 'fill', 'sandbox'])
+export const practiceSchema = strict({
+  blocks: list({ anyOf: blocks.filter((block) => practiceTypes.has((block.properties as { type: { enum: string[] } }).type.enum[0])) }),
+})
+
 export const answersSchema = strict({
   answers: list(strict({ id: str, option: num })),
 })
 
 export const reviewSchema = strict({
   issues: list(strict({ lesson: str, card: num, problem: str })),
+})
+
+export const tutorSchema = strict({
+  explanation: str,
+  misconception: str,
+  hint: str,
+  suggestedNextStep: str,
+  unsure: bool,
 })
 
 export const coveredSchema = strict({

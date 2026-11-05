@@ -25,7 +25,14 @@ export function FillBlanks({ block, onMiss, onFinish }: BlockProps<FillBlock>) {
       setWrong(word)
       setMissed(true)
       chime('wrong')
-      onMiss()
+      onMiss({
+        question: `${block.prompt}\n${block.sentence}`,
+        selected: word,
+        correct: block.answers[filled],
+        feedback: `"${word}" doesn't fit there. Read the sentence again.`,
+        reference: block.explain,
+        protect: true,
+      })
     }
   }
 

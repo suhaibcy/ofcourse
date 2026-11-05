@@ -36,6 +36,12 @@ test('a curve matches its target and a different one does not', () => {
   assert.ok(curveGap(formula, { a: 1 }, { a: 2 }, [-2, 2], [0, 10]) > CURVE_MATCH)
 })
 
+test('calculate needs an actual calculation', () => {
+  const calc = (formula: string): Block => ({ type: 'calc', id: 'c', conceptId: 'c', prompt: 'p', formula, values: { x: 2 }, tolerance: 0, explain: 'e' })
+  assert.ok(checkBlock(calc('x')).length > 0)
+  assert.deepEqual(checkBlock(calc('x*3')), [])
+})
+
 test('a multiple-choice step must have exactly one right answer', () => {
   const step = (correct: boolean[]): Block => ({ type: 'step', id: 'a', conceptId: 'c', problem: 'p',
     steps: [{ prompt: 'q', choices: correct.map((c) => ({ text: 't', correct: c, why: 'w' })) }] })

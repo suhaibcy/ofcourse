@@ -5,7 +5,7 @@ import type { BlockProps } from './blockTypes'
 
 // Solve one decision at a time. Finished steps stay on screen, so the student
 // can see the chain of logic build up. A hint is only offered after a wrong try.
-export function StepThrough({ block, onMiss, onFinish }: BlockProps<StepBlock>) {
+export function StepThrough({ block, onMiss, onMove, onHint, onFinish }: BlockProps<StepBlock>) {
   const [stepIndex, setStepIndex] = useState(0)
   const [wrong, setWrong] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
@@ -21,7 +21,14 @@ export function StepThrough({ block, onMiss, onFinish }: BlockProps<StepBlock>) 
     if (index !== correctIndex && !wrong.includes(index)) {
       setWrong([...wrong, index])
       setMissed(true)
-      onMiss()
+      onMiss({
+        question: `${block.problem}\n${step.prompt}`,
+        selected: step.choices[index].text,
+        correct: step.choices[correctIndex].text,
+        feedback: step.choices[index].why,
+        reference: [step.choices[correctIndex].why, block.hint].filter(Boolean).join(' '),
+        protect: step.choices.length - wrong.length - 1 > 1,
+      })
     }
   }
 
@@ -30,6 +37,7 @@ export function StepThrough({ block, onMiss, onFinish }: BlockProps<StepBlock>) 
       onFinish(!missed)
       return
     }
+    onMove?.()
     setStepIndex(stepIndex + 1)
     setWrong([])
     setPicked(null)
@@ -59,7 +67,7 @@ export function StepThrough({ block, onMiss, onFinish }: BlockProps<StepBlock>) 
       {wrong.length > 0 && !solved && block.hint && (
         showHint
           ? <p className="feedback">{block.hint}</p>
-          : <Button variant="ghost" small onClick={() => setShowHint(true)}>Show a hint</Button>
+          : <Button variant="ghost" small onClick={() => { setShowHint(true); onHint?.() }}>Show a hint</Button>
       )}
       {solved && <Button block onClick={next}>{stepIndex === block.steps.length - 1 ? 'Finish' : 'Next step'}</Button>}
     </div>

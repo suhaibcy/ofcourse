@@ -28,15 +28,23 @@ export function encodeWav(samples: Float32Array): ArrayBuffer {
   return buffer
 }
 
-export async function recordingToWav(recording: Blob): Promise<ArrayBuffer> {
+// Any audio the browser can play, as mono sound at the rate the API wants.
+export async function decodeToMono(recording: Blob, maxSeconds = Infinity): Promise<Float32Array> {
   const context = new AudioContext()
   const decoded = await context.decodeAudioData(await recording.arrayBuffer())
   await context.close()
+  if (decoded.duration > maxSeconds) throw new AudioTooLongError()
   const offline = new OfflineAudioContext(1, Math.ceil(decoded.duration * SAMPLE_RATE), SAMPLE_RATE)
   const source = offline.createBufferSource()
   source.buffer = decoded
   source.connect(offline.destination)
   source.start()
   const rendered = await offline.startRendering()
-  return encodeWav(rendered.getChannelData(0))
+  return rendered.getChannelData(0)
+}
+
+export class AudioTooLongError extends Error {}
+
+export async function recordingToWav(recording: Blob): Promise<ArrayBuffer> {
+  return encodeWav(await decodeToMono(recording))
 }

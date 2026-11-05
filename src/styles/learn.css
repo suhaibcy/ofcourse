@@ -425,3 +425,86 @@
   .build-stage--now .build-stage__mark,
   .recording__dot { animation: none; }
 }
+
+/* Hoot's tutor: live AI help, kept visually apart from the lesson's own feedback. */
+.learn-home-head { margin-bottom: var(--space-16); }
+.tutor { display: flex; flex-direction: column; gap: var(--space-12); margin-top: var(--space-16); padding: var(--space-16); background: var(--primary-soft); border: 1px solid var(--ring-track); border-radius: var(--radius-lg); }
+.tutor--offer { flex-direction: row; align-items: center; gap: var(--space-12); padding: var(--space-8) var(--space-16); }
+.tutor__head { display: flex; align-items: center; gap: var(--space-12); }
+.tutor__part p { margin: 0; font-size: 15px; line-height: 1.45; }
+.tutor__part--hint { padding: var(--space-12); background: var(--surface); border-radius: var(--radius-md); }
+.tutor__label { display: block; margin-bottom: var(--space-4); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--primary); }
+.tutor__unsure { margin: 0; padding: var(--space-8) var(--space-12); font-size: 14px; color: var(--due-soon); background: var(--surface); border-radius: var(--radius-md); }
+.tutor__credit { margin: 0; font-size: 12px; color: var(--text-secondary); }
+
+/* What Hoot has noticed, recommendations, and visible improvement. */
+.noticed { display: flex; flex-direction: column; gap: var(--space-12); margin: var(--space-12) 0 var(--space-16); padding: var(--space-16); background: var(--surface); border: 1px solid var(--ring-track); border-radius: var(--radius-lg); }
+.noticed__head { display: flex; align-items: center; gap: var(--space-12); }
+.noticed__head p { margin: 0; font-size: 13px; }
+.noticed__title { margin: 0; font-size: 17px; font-weight: 600; }
+.noticed__next { padding: var(--space-12); background: var(--primary-soft); border-radius: var(--radius-md); }
+.noticed__next p { margin: 0 0 var(--space-8); font-size: 15px; line-height: 1.4; }
+.noticed__next p:last-child { margin-bottom: 0; }
+.noticed__label--strong { color: var(--success); }
+.noticed__label--weak { color: var(--due-soon); }
+.noticed__chips { display: flex; flex-wrap: wrap; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }
+.noticed__chip { padding: var(--space-4) var(--space-12); font-size: 14px; border-radius: var(--radius-full); }
+.noticed__chip--strong { color: #1f5c39; background: #eaf5ee; }
+.noticed__rows, .noticed__recent { display: flex; flex-direction: column; gap: var(--space-8); margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.4; }
+.noticed__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); }
+.next-step { width: 100%; padding: var(--space-12); text-align: left; background: var(--primary-soft); border-radius: var(--radius-md); }
+.next-step p { margin: 0 0 var(--space-8); font-size: 15px; line-height: 1.4; }
+.next-step p:last-child { margin-bottom: 0; }
+.level-up { margin: 0; padding: var(--space-8) var(--space-16); font-weight: 600; color: #1f5c39; background: #eaf5ee; border-radius: var(--radius-full); animation: level-up-pop 360ms cubic-bezier(0.2, 0.9, 0.3, 1.3); }
+@keyframes level-up-pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .level-up { animation: none; } }
+
+/* Documents read from PDFs, and picking up an unfinished build. */
+.doc-list { display: flex; flex-direction: column; gap: var(--space-8); margin: 0 0 var(--space-12); padding: 0; list-style: none; }
+.doc-chip { display: flex; align-items: center; gap: var(--space-8); padding: var(--space-8) var(--space-12); font-size: 14px; background: var(--primary-soft); border-radius: var(--radius-md); }
+.doc-chip > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.doc-chip__remove { display: flex; padding: var(--space-4); color: inherit; background: none; border: 0; cursor: pointer; }
+.resume-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-12); margin-bottom: var(--space-16); padding: var(--space-16); background: #fff6e5; border: 1px solid #f0dcb0; border-radius: var(--radius-lg); }
+.resume-card p { margin: var(--space-4) 0 0; font-size: 14px; }
+.resume-card__actions { display: flex; gap: var(--space-8); }
+
+/* A lecture waiting for permission and transcription. */
+.lecture-card { display: flex; flex-direction: column; gap: var(--space-8); margin-bottom: var(--space-12); padding: var(--space-16); background: var(--surface); border: 1px solid var(--ring-track); border-radius: var(--radius-md); }
+.lecture-card p { margin: 0; font-size: 14px; }
+
+/* Color and energy for Learn. Built from the existing tokens and class colors. */
+.rank-card { background: linear-gradient(135deg, #fff3d9 0%, #ffe6c2 100%); border-color: #f4d9a6; }
+.make-card { color: var(--on-primary); background: linear-gradient(135deg, #2f5bd3 0%, #5a7fe6 60%, #7b8ff0 100%); border: 0; }
+.make-card .muted { color: rgba(255, 255, 255, 0.88); }
+.make-card .btn--primary { color: var(--primary-pressed); background: var(--surface); }
+.make-card .btn--primary:active { background: var(--primary-soft); }
+.course-list > li:nth-child(5n + 1) .course-row { border-left: 5px solid var(--class-1); }
+.course-list > li:nth-child(5n + 2) .course-row { border-left: 5px solid var(--class-6); }
+.course-list > li:nth-child(5n + 3) .course-row { border-left: 5px solid var(--class-3); }
+.course-list > li:nth-child(5n + 4) .course-row { border-left: 5px solid var(--class-7); }
+.course-list > li:nth-child(5n + 5) .course-row { border-left: 5px solid var(--class-5); }
+.course-row, .map-stop__card { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), border-color 160ms var(--ease-out); }
+@media (hover: hover) {
+  .course-row:hover, .map-stop__card:hover { transform: translateY(-2px); border-color: var(--ring-track); box-shadow: 0 6px 18px rgba(47, 91, 211, 0.12); }
+}
+.unit__number { display: inline-block; padding: 2px var(--space-8); color: var(--on-primary); background: var(--primary); border-radius: var(--radius-full); }
+
+/* Laptops and projectors: use the width instead of a phone column. */
+@media (min-width: 960px) {
+  .app.app--learn { max-width: 1160px; padding-left: var(--space-32); padding-right: var(--space-32); padding-bottom: var(--space-48); }
+  .learn-home { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: var(--space-32); align-items: start; }
+  .learn-home__side { position: sticky; top: var(--space-24); }
+  .learn-home__main > .learn-subhead:first-child { margin-top: 0; }
+  .course-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: var(--space-32); align-items: start; }
+  .course-layout__side { position: sticky; top: var(--space-24); max-height: calc(100vh - var(--space-48)); overflow-y: auto; }
+  .course-layout__side .noticed { margin-top: 0; }
+  .learn-narrow { max-width: 680px; margin: 0 auto; }
+  .learn-player { max-width: 760px; margin: 0 auto; }
+  .learn-gate { max-width: 520px; margin-left: auto; margin-right: auto; }
+  .screen-title { font-size: 34px; }
+  .notes-kit, .plan-tab { max-width: 760px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .course-row, .map-stop__card { transition: none; }
+  .course-row:hover, .map-stop__card:hover { transform: none; }
+}

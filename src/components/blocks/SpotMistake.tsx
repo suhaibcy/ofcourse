@@ -13,7 +13,14 @@ export function SpotMistake({ block, onMiss, onFinish }: BlockProps<SpotBlock>) 
       setFound(true)
     } else if (!wrong.includes(index)) {
       setWrong([...wrong, index])
-      onMiss()
+      onMiss({
+        question: `${block.problem}\nWhich line has the first mistake?\n${block.lines.join('\n')}`,
+        selected: block.lines[index],
+        correct: block.lines[block.wrongLine],
+        feedback: 'That line holds up. Look for where the logic breaks.',
+        reference: block.why,
+        protect: block.lines.length - wrong.length - 1 > 1,
+      })
     }
   }
 
