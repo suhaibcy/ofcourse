@@ -46,7 +46,7 @@ test('points add up and ranks unlock at their thresholds', () => {
 test('a study plan ends the day before the exam with a review', () => {
   const plan = buildStudyPlan('2026-11-10', '2026-11-07', ['A', 'B'], 20)
   assert.deepEqual(plan.map((s) => s.date), ['2026-11-07', '2026-11-08', '2026-11-09'])
-  assert.deepEqual(plan.map((s) => s.title), ['Study: A', 'Study: B', 'Review: take the course challenge'])
+  assert.deepEqual(plan.map((s) => s.title), ['Study: A', 'Study: B', 'Review: take the course exam'])
 })
 
 test('a far-off exam gets the last 7 days, and a past exam gets no plan', () => {

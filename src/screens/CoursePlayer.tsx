@@ -15,15 +15,19 @@ import { SpotMistake } from '../components/blocks/SpotMistake'
 import { StepThrough } from '../components/blocks/StepThrough'
 import { Button } from '../components/Button'
 import { Hoot, type HootPose, type HootReaction } from '../components/Hoot'
-import type { Block } from '../lib/course'
+import { TeachDeck } from '../components/TeachDeck'
+import type { Block, TeachCard } from '../lib/course'
 import { starsFor } from '../lib/streak'
 
 type PlayerProps = {
   title: string
   intro: string
   blocks: Block[]
+  teach?: TeachCard[]
+  graded?: boolean // a quiz or exam: the end screen shows a score
   aiOn: boolean
   onResult: (blockId: string, firstTry: boolean) => void
+  onTeachDone?: () => void
   onExit: () => void
 }
 
@@ -45,21 +49,22 @@ function Confetti() {
   )
 }
 
-// Plays a list of blocks, one at a time. Used for lessons and for Fix it.
-export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: PlayerProps) {
+// Plays one lesson: teaching first, then the activities. Quizzes skip straight to testing.
+export function CoursePlayer({ title, intro, blocks, teach = [], graded = false, aiOn, onResult, onTeachDone, onExit }: PlayerProps) {
+  const [teaching, setTeaching] = useState(teach.length > 0)
   const [index, setIndex] = useState(0)
   const [reaction, setReaction] = useState<HootReaction | null>(null)
   const [pose, setPose] = useState<HootPose>('idle')
   const [rightCount, setRightCount] = useState(0)
 
-  const finished = index >= blocks.length
+  const finished = !teaching && index >= blocks.length
   const block = blocks[index]
 
   const react = (name: HootReaction['name']) => setReaction((r) => ({ name, key: (r?.key ?? 0) + 1 }))
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [index])
+  }, [index, teaching])
 
   function miss() {
     setPose('oops')
@@ -77,19 +82,32 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
     setIndex(index + 1)
   }
 
+  function doneTeaching() {
+    onTeachDone?.()
+    setTeaching(false)
+    if (blocks.length === 0) {
+      setPose('celebrate')
+      react('hop')
+    }
+  }
+
   if (finished) {
     const stars = starsFor(rightCount, blocks.length)
+    const percent = blocks.length === 0 ? 0 : Math.round((rightCount / blocks.length) * 100)
     return (
       <div className="lesson-done">
         <div className="lesson-done__hoot">
           <Hoot pose={pose} size={132} animate decorative reaction={reaction} />
           <Confetti />
         </div>
-        <p className="stars" aria-label={`${stars} of 3 stars`}>
-          {[1, 2, 3].map((n) => <span key={n} className={n <= stars ? 'star star--on' : 'star'} style={{ animationDelay: `${n * 150}ms` }}>★</span>)}
-        </p>
-        <h1 className="screen-title">Lesson done!</h1>
-        <p className="muted">{rightCount} of {blocks.length} right on the first try.</p>
+        {blocks.length > 0 && (
+          <p className="stars" aria-label={`${stars} of 3 stars`}>
+            {[1, 2, 3].map((n) => <span key={n} className={n <= stars ? 'star star--on' : 'star'} style={{ animationDelay: `${n * 150}ms` }}>★</span>)}
+          </p>
+        )}
+        <h1 className="screen-title">{graded ? `You scored ${percent}%` : 'Lesson done!'}</h1>
+        {blocks.length > 0 && <p className="muted">{rightCount} of {blocks.length} right on the first try.</p>}
+        {graded && percent < 70 && <p className="muted">Worth another look: go back over the lessons, then try Fix it.</p>}
         <Button block onClick={onExit}>Back to the course</Button>
       </div>
     )
@@ -99,32 +117,38 @@ export function CoursePlayer({ title, intro, blocks, aiOn, onResult, onExit }: P
   return (
     <>
       <BackHeader title="" backLabel="Course" onBack={onExit} />
-      <div className="lesson-progress" role="progressbar" aria-valuemin={0} aria-valuemax={blocks.length} aria-valuenow={index} aria-label="Lesson progress">
-        <span style={{ transform: `scaleX(${index / blocks.length})` }} />
-      </div>
+      {!teaching && (
+        <div className="lesson-progress" role="progressbar" aria-valuemin={0} aria-valuemax={blocks.length} aria-valuenow={index} aria-label="Practice progress">
+          <span style={{ transform: `scaleX(${index / blocks.length})` }} />
+        </div>
+      )}
       <div className="lesson-head">
-        <Hoot pose={pose} size={56} animate decorative reaction={reaction} />
+        <Hoot pose={teaching ? 'point' : pose} size={56} animate decorative reaction={reaction} />
         <div>
           <h1 className="lesson-head__title">{title}</h1>
-          {index === 0 && <p className="muted">{intro}</p>}
+          {(teaching || index === 0) && <p className="muted">{teaching ? intro : graded ? intro : 'Now you try it.'}</p>}
         </div>
       </div>
-      {/* A new key resets the block's own state when moving to the next one. */}
-      <div key={block.id} className="block-card">
-        {block.type === 'step' && <StepThrough block={block} {...shared} />}
-        {block.type === 'sandbox' && <Sandbox block={block} {...shared} />}
-        {block.type === 'order' && <PutInOrder block={block} {...shared} />}
-        {block.type === 'spot' && <SpotMistake block={block} {...shared} />}
-        {block.type === 'sort' && <SortIt block={block} {...shared} />}
-        {block.type === 'calc' && <CalcIt block={block} {...shared} />}
-        {block.type === 'explain' && <ExplainBack block={block} aiOn={aiOn} {...shared} />}
-        {block.type === 'voice' && <SayAndFly block={block} aiOn={aiOn} {...shared} />}
-        {block.type === 'catch' && <CatchIt block={block} {...shared} />}
-        {block.type === 'code' && <CodeLab block={block} {...shared} />}
-        {block.type === 'match' && <MatchUp block={block} {...shared} />}
-        {block.type === 'flip' && <FlipCards block={block} {...shared} />}
-        {block.type === 'fill' && <FillBlanks block={block} {...shared} />}
-      </div>
+      {teaching ? (
+        <div className="block-card"><TeachDeck cards={teach} onDone={doneTeaching} /></div>
+      ) : (
+        // A new key resets the block's own state when moving to the next one.
+        <div key={block.id} className="block-card">
+          {block.type === 'step' && <StepThrough block={block} {...shared} />}
+          {block.type === 'sandbox' && <Sandbox block={block} {...shared} />}
+          {block.type === 'order' && <PutInOrder block={block} {...shared} />}
+          {block.type === 'spot' && <SpotMistake block={block} {...shared} />}
+          {block.type === 'sort' && <SortIt block={block} {...shared} />}
+          {block.type === 'calc' && <CalcIt block={block} {...shared} />}
+          {block.type === 'explain' && <ExplainBack block={block} aiOn={aiOn} {...shared} />}
+          {block.type === 'voice' && <SayAndFly block={block} aiOn={aiOn} {...shared} />}
+          {block.type === 'catch' && <CatchIt block={block} {...shared} />}
+          {block.type === 'code' && <CodeLab block={block} {...shared} />}
+          {block.type === 'match' && <MatchUp block={block} {...shared} />}
+          {block.type === 'flip' && <FlipCards block={block} {...shared} />}
+          {block.type === 'fill' && <FillBlanks block={block} {...shared} />}
+        </div>
+      )}
     </>
   )
 }

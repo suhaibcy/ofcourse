@@ -1,5 +1,6 @@
-import { allBlocks, type Course, type Level, type StudyKit } from './course'
+import { allBlocks, type Course, type Lesson, type Level, type StudyKit } from './course'
 import { removeBlocks } from './courseCheck'
+import type { Outline } from './courseWire'
 import { runCode } from './runCode'
 
 // The app's side of the AI steps. The API key stays on the server; these
@@ -21,7 +22,7 @@ export async function aiAvailable(): Promise<boolean> {
   }
 }
 
-export type BuildStage = 'reading' | 'designing' | 'checking'
+export type BuildProgress = { stage: 'reading' | 'planning' | 'writing' | 'checking'; detail?: string }
 
 // Actually run each coding activity's solution. If it doesn't print what the
 // lesson promises, that activity never reaches the student.
@@ -37,19 +38,31 @@ async function checkCodeBlocks(course: Course): Promise<Course> {
   return { ...removeBlocks(course, broken), checks: { ...checks, removedBlocks: checks.removedBlocks + broken.length } }
 }
 
-type Reading = { subject: string; kit: StudyKit }
+type Reading = { subject: string; kit: StudyKit; usedMaterials: boolean }
 
-// The fixed steps, run one at a time so the student can watch progress and no
-// single server call runs too long.
-export async function buildCourse(input: { photos: string[]; text: string; goal: string; level: Level }, onStage: (stage: BuildStage) => void): Promise<Course> {
-  onStage('reading')
+// The fixed steps, run one at a time so the student can watch progress. Each unit
+// is its own request, written side by side, so a long course doesn't hit a time limit.
+export async function buildCourse(input: { topic: string; photos: string[]; text: string; level: Level }, onProgress: (progress: BuildProgress) => void): Promise<Course> {
+  onProgress({ stage: 'reading' })
   const { reading } = await post<{ reading: Reading }>('/api/course', { action: 'read', ...input })
-  onStage('designing')
-  const { course } = await post<{ course: Course }>('/api/course', { action: 'design', reading, goal: input.goal, level: input.level })
-  onStage('checking')
-  const checked = await post<{ course: Course }>('/api/course', { action: 'verify', course, reading })
+  onProgress({ stage: 'planning' })
+  const { outline } = await post<{ outline: Outline }>('/api/course', { action: 'outline', reading, topic: input.topic, level: input.level })
+
+  let written = 0
+  const total = outline.units.length
+  onProgress({ stage: 'writing', detail: `0 of ${total} units` })
+  const units = await Promise.all(outline.units.map(async (_, unitIndex) => {
+    const { lessons } = await post<{ lessons: Lesson[] }>('/api/course', { action: 'design', reading, outline, unitIndex, topic: input.topic, level: input.level })
+    written += 1
+    onProgress({ stage: 'writing', detail: `${written} of ${total} units` })
+    return lessons
+  }))
+
+  onProgress({ stage: 'checking' })
+  const draft: Course = { id: 'new', title: outline.title, summary: outline.summary, origin: 'generated', concepts: outline.concepts, lessons: units.flat() }
+  const checked = await post<{ course: Course }>('/api/course', { action: 'verify', course: draft, reading })
   const final = await checkCodeBlocks(checked.course)
-  return { ...final, subject: reading.subject, kit: reading.kit }
+  return { ...final, subject: reading.subject, kit: reading.kit, basedOn: reading.usedMaterials ? 'materials' : 'general' }
 }
 
 export async function rewriteNotes(kit: StudyKit, level: Level): Promise<StudyKit> {

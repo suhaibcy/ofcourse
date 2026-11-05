@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { BackHeader } from '../components/BackHeader'
 import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
-import { LEVELS, type Block, type Course, type Level, type StudyKit } from '../lib/course'
+import { LEVELS, type Block, type Course, type Lesson, type Level, type StudyKit } from '../lib/course'
 import { rewriteNotes } from '../lib/courseClient'
 import { fromDateKey } from '../lib/dates'
-import { courseMastery, lessonDone, masteryByConcept, missedBlocks, weakestConcepts, type Progress } from '../lib/mastery'
+import { courseMastery, lessonFinished, masteryByConcept, missedBlocks, weakestConcepts, type Progress } from '../lib/mastery'
 import { newId } from '../lib/useStoredState'
 import { starsFor } from '../lib/streak'
 import { buildStudyPlan } from '../lib/studyPlan'
@@ -14,9 +14,11 @@ import { useToast } from '../state/toastContext'
 
 type Tab = 'lessons' | 'notes' | 'plan'
 const MINUTE_OPTIONS = [15, 25, 45]
-const CHALLENGE_SIZE = 6
+const EXAM_SIZE = 6
 
 const niceDate = (dayKey: string) => fromDateKey(dayKey).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+
+export type PlayRequest = { title: string; intro: string; blocks: Block[]; lesson?: Lesson; graded: boolean; retry: boolean }
 
 type CourseViewProps = {
   course: Course
@@ -24,19 +26,37 @@ type CourseViewProps = {
   aiOn: boolean
   today: string
   onBack: () => void
-  onPlay: (title: string, intro: string, blocks: Block[], mode: 'lesson' | 'fix') => void
+  onPlay: (request: PlayRequest) => void
   onUpdateKit: (kit: StudyKit) => void
 }
 
-// One course: its lessons, its study notes, and a study plan for the exam.
+// Lessons in order, grouped under their units.
+function groupByUnit(lessons: Lesson[]) {
+  const units: { title: string; lessons: Lesson[] }[] = []
+  for (const lesson of lessons) {
+    const title = lesson.unit ?? 'Lessons'
+    const unit = units[units.length - 1]
+    if (unit?.title === title) unit.lessons.push(lesson)
+    else units.push({ title, lessons: [lesson] })
+  }
+  return units
+}
+
+// One course: its units and lessons, its study notes, and a study plan for the exam.
 export function CourseView({ course, progress, aiOn, today, onBack, onPlay, onUpdateKit }: CourseViewProps) {
   const [tab, setTab] = useState<Tab>('lessons')
   const missed = missedBlocks(course, progress)
   const allBlocks = course.lessons.flatMap((lesson) => lesson.blocks)
+  const next = course.lessons.find((lesson) => !lessonFinished(lesson, progress))
+  const done = course.lessons.filter((lesson) => lessonFinished(lesson, progress)).length
 
-  function challenge() {
-    const mixed = [...allBlocks].filter((b) => b.type !== 'voice').sort(() => Math.random() - 0.5).slice(0, CHALLENGE_SIZE)
-    onPlay('Course challenge', 'A mix from the whole course. Show what you know!', mixed, 'fix')
+  function exam() {
+    const mixed = allBlocks.filter((b) => b.type !== 'voice' && b.type !== 'explain').sort(() => Math.random() - 0.5).slice(0, EXAM_SIZE)
+    onPlay({ title: 'Course exam', intro: 'A mix from the whole course. Show what you know!', blocks: mixed, graded: true, retry: true })
+  }
+
+  function open(lesson: Lesson) {
+    onPlay({ title: lesson.title, intro: lesson.intro, blocks: lesson.blocks, lesson, graded: lesson.kind === 'quiz', retry: false })
   }
 
   return (
@@ -48,6 +68,9 @@ export function CourseView({ course, progress, aiOn, today, onBack, onPlay, onUp
         {course.level && <span className="tag">{course.level}</span>}
         {course.origin === 'sample' && <span className="tag">Sample, not made by Hoot</span>}
       </p>
+      {course.basedOn === 'general' && (
+        <p className="feedback learn-basis" role="note">You didn't add materials, so Hoot taught this from general knowledge. AI can make mistakes, so check anything important against your class.</p>
+      )}
       <div className="learn-tabs" role="tablist">
         {(['lessons', 'notes', 'plan'] as const).map((id) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'learn-tab learn-tab--on' : 'learn-tab'} onClick={() => setTab(id)}>
@@ -59,34 +82,41 @@ export function CourseView({ course, progress, aiOn, today, onBack, onPlay, onUp
       {tab === 'lessons' && (
         <>
           {course.checks && (
-            <p className="check-note"><Icon name="check" size={16} /> Hoot double-checked {course.checks.checkedQuestions} questions and removed {course.checks.removedBlocks} that didn't hold up.</p>
+            <p className="check-note"><Icon name="check" size={16} /> Hoot double-checked this course: {course.checks.checkedQuestions} questions solved separately, {course.checks.removedBlocks + (course.checks.flaggedCards ?? 0)} items removed.</p>
           )}
-          <ol className="course-map">
-            {course.lessons.map((lesson, i) => {
-              const done = lessonDone(lesson.blocks, progress)
-              const next = course.lessons.findIndex((l) => !lessonDone(l.blocks, progress))
-              const stars = done ? starsFor(lesson.blocks.filter((b) => progress[b.id].firstTry).length, lesson.blocks.length) : 0
-              return (
-                <li key={lesson.id} className={done ? 'map-stop map-stop--done' : i === next ? 'map-stop map-stop--next' : 'map-stop'}>
-                  <span className="map-stop__mark" aria-hidden="true">{done ? <Icon name="check" size={18} /> : i + 1}</span>
-                  <button type="button" className="map-stop__card" onClick={() => onPlay(lesson.title, lesson.intro, lesson.blocks, 'lesson')}>
-                    <span className="course-row__title">{lesson.title}</span>
-                    <span className="muted">{lesson.blocks.length} activities</span>
-                    {done && <span className="map-stars" aria-label={`${stars} of 3 stars`}>{'★'.repeat(stars)}</span>}
-                    {lesson.source?.quote && <span className="map-stop__source">From your work: "{lesson.source.quote}"</span>}
-                  </button>
-                </li>
-              )
-            })}
-          </ol>
+          <p className="sort-count course-progress">{done} of {course.lessons.length} finished</p>
+          {groupByUnit(course.lessons).map((unit, u) => (
+            <section key={unit.title} className="unit">
+              <p className="unit__number">Unit {u + 1}</p>
+              <h2 className="unit__title">{unit.title}</h2>
+              <ol className="course-map">
+                {unit.lessons.map((lesson) => {
+                  const finished = lessonFinished(lesson, progress)
+                  const isQuiz = lesson.kind === 'quiz'
+                  const stars = finished && lesson.blocks.length > 0 ? starsFor(lesson.blocks.filter((b) => progress[b.id].firstTry).length, lesson.blocks.length) : 0
+                  return (
+                    <li key={lesson.id} className={finished ? 'map-stop map-stop--done' : lesson.id === next?.id ? 'map-stop map-stop--next' : 'map-stop'}>
+                      <span className="map-stop__mark" aria-hidden="true">{finished ? <Icon name="check" size={18} /> : <Icon name={isQuiz ? 'grades' : 'notes'} size={18} />}</span>
+                      <button type="button" className={isQuiz ? 'map-stop__card map-stop__card--quiz' : 'map-stop__card'} onClick={() => open(lesson)}>
+                        <span className="course-row__title">{lesson.title}</span>
+                        <span className="muted">{isQuiz ? `Quiz · ${lesson.blocks.length} questions` : `Learn ${(lesson.teach ?? []).length} · Practice ${lesson.blocks.length}`}</span>
+                        {stars > 0 && <span className="map-stars" aria-label={`${stars} of 3 stars`}>{'★'.repeat(stars)}</span>}
+                        {lesson.source?.quote && <span className="map-stop__source">From your work: "{lesson.source.quote}"</span>}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ol>
+            </section>
+          ))}
           {missed.length > 0 && (
-            <Button block variant="secondary" onClick={() => onPlay('Fix it', 'These are the ones that tripped you up. Try them again.', missed, 'fix')}>
+            <Button block variant="secondary" onClick={() => onPlay({ title: 'Fix it', intro: 'These are the ones that tripped you up. Try them again.', blocks: missed, graded: false, retry: true })}>
               Fix it: {missed.length} to practice again
             </Button>
           )}
           <div className="challenge-card">
-            <div><strong>Course challenge</strong><p className="muted">A mix of activities from the whole course.</p></div>
-            <Button small onClick={challenge}>Start</Button>
+            <div><strong>Course exam</strong><p className="muted">Finish the units first, then show what you know.</p></div>
+            <Button small onClick={exam}>Start</Button>
           </div>
           <h2 className="learn-subhead">Your mastery: {courseMastery(course, progress)}%</h2>
           <ul className="mastery">

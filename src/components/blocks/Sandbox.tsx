@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import type { SandboxBlock } from '../../lib/course'
-import { CURVE_MATCH, curveGap, curvePoints } from '../../lib/formula'
+import { CURVE_MATCH, curveGap } from '../../lib/formula'
 import { Button } from '../Button'
+import { CurveGraph } from '../CurveGraph'
 import type { BlockProps } from './blockTypes'
-
-const WIDTH = 320
-const HEIGHT = 220
 
 // The live graph game: every slider move redraws the curve. Code decides when
 // it matches the target, by comparing the two curves point by point.
@@ -14,27 +12,13 @@ export function Sandbox({ block, onFinish }: BlockProps<SandboxBlock>) {
   const [values, setValues] = useState<Record<string, number>>(start)
   const [revealed, setRevealed] = useState(false)
 
-  const [xMin, xMax] = block.xRange
-  const [yMin, yMax] = block.yRange
-  const toX = (x: number) => ((x - xMin) / (xMax - xMin)) * WIDTH
-  const toY = (y: number) => HEIGHT - ((y - yMin) / (yMax - yMin)) * HEIGHT
-  const clampY = (y: number) => Math.min(HEIGHT + 40, Math.max(-40, toY(y)))
-  const path = (vals: Record<string, number>) =>
-    curvePoints(block.formula, vals, block.xRange).map((p, i) => `${i === 0 ? 'M' : 'L'}${toX(p.x).toFixed(1)} ${clampY(p.y).toFixed(1)}`).join(' ')
-
   const matched = curveGap(block.formula, values, block.target, block.xRange, block.yRange) <= CURVE_MATCH
   const done = matched || revealed
 
   return (
     <div className="block">
       <p className="block__prompt">{block.prompt}</p>
-      <svg className={matched ? 'graph graph--matched' : 'graph'} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img"
-        aria-label={matched ? 'Your curve matches the target' : 'Your curve and the dashed target curve'}>
-        <line className="graph__axis" x1={0} x2={WIDTH} y1={toY(0)} y2={toY(0)} />
-        <line className="graph__axis" x1={toX(0)} x2={toX(0)} y1={0} y2={HEIGHT} />
-        <path className="graph__target" d={path(block.target)} />
-        <path className="graph__mine" d={path(values)} />
-      </svg>
+      <CurveGraph formula={block.formula} values={values} target={block.target} xRange={block.xRange} yRange={block.yRange} matched={matched} />
       <div className="sliders">
         {block.sliders.map((slider) => (
           <label key={slider.name} className="slider">

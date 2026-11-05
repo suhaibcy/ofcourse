@@ -39,11 +39,11 @@ export async function openMic(): Promise<Mic> {
 }
 
 // Read a word aloud slowly with the phone's built-in voice.
-export function speak(text: string) {
+export function speak(text: string, rate = 0.75) {
   if (!('speechSynthesis' in window)) return
   window.speechSynthesis.cancel()
   const utterance = new SpeechSynthesisUtterance(text)
-  utterance.rate = 0.75
+  utterance.rate = rate
   window.speechSynthesis.speak(utterance)
 }
 

@@ -129,11 +129,24 @@ export type StudyKit = {
 
 export type SourceRef = { photo: number; quote: string } // where in the coursework this came from
 
+// The teaching part of a lesson, shown before any activity. Nothing here is graded.
+export type TeachCard =
+  | { type: 'read'; heading: string; body: string }
+  | { type: 'example'; problem: string; steps: { step: string; why: string }[] } // a worked example, revealed a step at a time
+  | { type: 'explore'; prompt: string; formula: string; xRange: [number, number]; yRange: [number, number]
+      sliders: SandboxBlock['sliders']; notice: string } // play with a live graph
+  | { type: 'check'; question: string; choices: Choice[] } // a quick check on what was just taught
+  | { type: 'compare'; heading: string; columns: [string, string]; rows: { label: string; left: string; right: string }[] }
+  | { type: 'remember'; points: string[] }
+
 export type Lesson = {
   id: string
   title: string
   intro: string
+  unit?: string // the unit it belongs to
+  kind?: 'learn' | 'quiz' // learn teaches then practices; quiz only tests
   source?: SourceRef
+  teach?: TeachCard[]
   blocks: Block[]
 }
 
@@ -147,7 +160,8 @@ export type Course = {
   kit?: StudyKit
   concepts: { id: string; name: string }[]
   lessons: Lesson[]
-  checks?: { checkedQuestions: number; removedBlocks: number } // what the checker did
+  basedOn?: 'materials' | 'general' // built from the learner's own work, or the model's general knowledge
+  checks?: { checkedQuestions: number; removedBlocks: number; flaggedCards?: number } // what the checker did
 }
 
 export function allBlocks(course: Course): Block[] {

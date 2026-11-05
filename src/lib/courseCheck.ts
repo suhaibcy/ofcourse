@@ -1,4 +1,4 @@
-import { allBlocks, type Block, type Course } from './course.ts'
+import { allBlocks, type Block, type Course, type TeachCard } from './course.ts'
 import { curvePoints, evaluate, isSafeFormula } from './formula.ts'
 
 // Plain-code checks on a course. The AI proposes; this code decides what's
@@ -88,11 +88,48 @@ export function checkBlock(block: Block): string[] {
   return problems
 }
 
-// Every problem in a course, labeled by block id.
+// What's wrong with one teaching card (empty = fine).
+export function checkTeachCard(card: TeachCard): string[] {
+  switch (card.type) {
+    case 'read':
+      return card.body.trim() ? [] : ['read card has no text']
+    case 'example':
+      return card.steps.length >= 2 ? [] : ['example needs at least 2 steps']
+    case 'explore': {
+      const names = card.sliders.map((s) => s.name)
+      const problems: string[] = []
+      if (names.length === 0) problems.push('explore needs a slider')
+      if (!isSafeFormula(card.formula, [...names, 'x'])) problems.push('unsafe formula')
+      if (card.xRange[0] >= card.xRange[1] || card.yRange[0] >= card.yRange[1]) problems.push('bad graph range')
+      if (card.sliders.some((s) => s.min >= s.max || s.step <= 0)) problems.push('bad slider')
+      if (problems.length === 0) {
+        const start = Object.fromEntries(card.sliders.map((s) => [s.name, s.value]))
+        if (curvePoints(card.formula, start, card.xRange, 40).length < 30) problems.push('the curve has too few points to draw')
+      }
+      return problems
+    }
+    case 'check':
+      return card.choices.length >= 2 && card.choices.filter((c) => c.correct).length === 1 ? [] : ['check needs exactly 1 correct choice']
+    case 'compare':
+      return card.columns.length === 2 && card.rows.length > 0 ? [] : ['compare needs 2 columns and a row']
+    case 'remember':
+      return card.points.length > 0 ? [] : ['remember needs a point']
+  }
+}
+
+// Every problem in a course, labeled by block or lesson id. Teaching comes first:
+// a lesson has to teach before it practices, and a quiz has to test something.
 export function checkCourse(course: Course): string[] {
   const concepts = new Set(course.concepts.map((c) => c.id))
   const problems: string[] = []
   if (course.lessons.length === 0) problems.push('course has no lessons')
+  for (const lesson of course.lessons) {
+    const teach = lesson.teach ?? []
+    if (lesson.kind === 'quiz' && lesson.blocks.length < 2) problems.push(`${lesson.id}: a quiz needs at least 2 activities`)
+    if (lesson.kind !== 'quiz' && teach.length === 0) problems.push(`${lesson.id}: a lesson must teach before it practices`)
+    if (lesson.kind !== 'quiz' && lesson.blocks.length === 0) problems.push(`${lesson.id}: a lesson needs practice`)
+    teach.forEach((card, i) => problems.push(...checkTeachCard(card).map((p) => `${lesson.id} card ${i + 1}: ${p}`)))
+  }
   const seen = new Set<string>()
   for (const block of allBlocks(course)) {
     if (seen.has(block.id)) problems.push(`${block.id}: duplicate id`)
@@ -167,10 +204,28 @@ export function disagreements(course: Course, answers: { id: string; option: num
   return [...new Set(blocks)]
 }
 
-// The course without the given blocks, dropping any lesson left empty.
+// The course without the given blocks, dropping any lesson left with nothing in it.
 export function removeBlocks(course: Course, ids: string[]): Course {
   const lessons = course.lessons
     .map((lesson) => ({ ...lesson, blocks: lesson.blocks.filter((block) => !ids.includes(block.id)) }))
-    .filter((lesson) => lesson.blocks.length > 0)
+    .filter((lesson) => lesson.blocks.length > 0 || (lesson.teach ?? []).length > 0)
   return { ...course, lessons }
+}
+
+// The teaching cards as plain text for a second AI to fact-check, with no answer
+// keys hidden from it: its job is finding errors in what the lesson says.
+export function teachingForReview(course: Course) {
+  return course.lessons.flatMap((lesson) => (lesson.teach ?? []).map((card, index) => ({ lesson: lesson.id, card: index, content: card })))
+}
+
+// The course without the given cards, ignoring any issue that points nowhere.
+export function removeTeachCards(course: Course, issues: { lesson: string; card: number }[]): { course: Course; removed: number } {
+  let removed = 0
+  const lessons = course.lessons.map((lesson) => {
+    const teach = lesson.teach ?? []
+    const kept = teach.filter((_, i) => !issues.some((issue) => issue.lesson === lesson.id && issue.card === i))
+    removed += teach.length - kept.length
+    return { ...lesson, teach: kept }
+  })
+  return { course: { ...course, lessons }, removed }
 }

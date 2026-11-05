@@ -1,8 +1,8 @@
 # ofCourse Learn
 
-**A study platform that turns your own coursework into games, notes, and a study plan.**
+**Tell it what you want to learn, add your notes or documents, and get a full course that teaches you first, then lets you practice.**
 
-Built for the Meta Global AI Developer Hackathon (Indie Developer track, Build for Your World). ofCourse started as a phone-first planner for college students. This project adds Learn: subjects to explore, mastery levels, hands-on coding labs, and Hoot the owl, who uses Meta's models to read your notes, summarize them, adapt to your level, find your exam dates, and build lessons you do instead of lessons you watch.
+Built for the Meta Global AI Developer Hackathon (Indie Developer track, Build for Your World). ofCourse started as a phone-first planner for college students. This project adds Learn: subjects to explore, mastery levels, hands-on coding labs, and Hoot the owl, who uses Meta's models to read your materials, plan units, teach lessons, summarize your notes, adapt to your level, find your exam dates, and build the practice and quizzes.
 
 **Who it's for:** the long-term goal is learners of every level. This version is for people 18 and older, as the Meta Model API terms (section 10.1) require.
 
@@ -17,7 +17,9 @@ Built for the Meta Global AI Developer Hackathon (Indie Developer track, Build f
 New during the hackathon:
 - The course engine, checks, and mastery tracking (`src/lib/course*.ts`, `formula.ts`, `mastery.ts`)
 - Thirteen interactive lesson types, including voice-controlled and arcade games, drag and drop, and a code lab (`src/components/blocks/`, `src/lib/voiceGame.ts`, `src/lib/mic.ts`, `src/lib/runCode.ts`)
-- The Learn hub: subjects, pre-written sample courses, mastery levels, points and ranks, streaks, and the course challenge (`src/data/sampleLibrary.ts`)
+- Teaching: units, explanations, worked examples, live graphs, comparisons, and quick checks that come before any practice (`src/components/TeachDeck.tsx`)
+- The Learn hub: subjects, pre-written sample courses, mastery levels, points and ranks, streaks, unit quizzes, and the course exam (`src/data/sampleLibrary.ts`)
+- PDF, photo, and text file uploads (`src/lib/pdfPages.ts`, `src/lib/shrinkImage.ts`)
 - Study notes that save to the Notes tab, and study plans that save to the planner (`src/screens/CourseView.tsx`, `src/lib/studyPlan.ts`)
 - The Courses screens (`src/screens/LearnScreen.tsx`, `CoursePlayer.tsx`, `src/styles/learn.css`)
 - The Meta model pipeline (`server/`, `api/`)
@@ -25,23 +27,27 @@ New during the hackathon:
 ## How it works
 
 ```
-Photos or notes
+What you want to learn, plus any photos, PDFs, or notes
    |
    v
-1. READ      Muse Spark reads the coursework and quotes where each concept came from
+1. READ      Muse Spark reads the materials, summarizes them, finds dates, and
+   |         quotes where each concept came from
+   v
+2. PLAN      Muse Spark splits the course into units that build on each other
    |
    v
-2. DESIGN    Muse Spark fills in lesson blocks we built. It never writes app code.
-   |
+3. WRITE     Each unit is written separately: lessons that teach first, practice
+   |         on what was taught, then a quiz. The AI fills in cards and activities
+   |         we built. It never writes app code.
    v
-3. CHECK     Plain code rejects broken blocks and any copy of the original problems
-   |
+4. CHECK     Plain code rejects broken items, lessons that test without teaching,
+   |         and any copy of the original problems
    v
-4. VERIFY    A separate Muse Spark call solves the step-through and spot-the-mistake
-   |         questions without seeing the answers. If it disagrees with the answer
-   |         key, that activity is removed.
+5. VERIFY    A separate Muse Spark call solves step-through and spot-the-mistake
+   |         questions without seeing the answers, and another fact-checks the
+   |         teaching. Anything that fails is removed. Code labs run their solution.
    v
-A course map you can play, with a Fix it round built from what you missed
+A course: units, lessons, quizzes, an exam, notes, and a study plan
 ```
 
 ### The lesson types

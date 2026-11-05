@@ -1,4 +1,4 @@
-import { allBlocks, type Block, type Course } from './course.ts'
+import { allBlocks, type Block, type Course, type Lesson } from './course.ts'
 
 // What the student did on each block: did they get it on the first try?
 // `fixed` means they missed it, then got it right in Fix it.
@@ -61,6 +61,14 @@ export function weakestConcepts(course: Course, progress: Progress): string[] {
 // The blocks to practice again: anything missed on the first try.
 export function missedBlocks(course: Course, progress: Progress): Block[] {
   return allBlocks(course).filter((block) => progress[block.id] && !progress[block.id].firstTry && !progress[block.id].fixed)
+}
+
+// A lesson is finished when its teaching was read and every activity was tried.
+export const teachKey = (lessonId: string) => `teach:${lessonId}`
+
+export function lessonFinished(lesson: Lesson, progress: Progress): boolean {
+  const taught = (lesson.teach ?? []).length === 0 || Boolean(progress[teachKey(lesson.id)])
+  return taught && lessonDone(lesson.blocks, progress)
 }
 
 export function lessonDone(blocks: Block[], progress: Progress): boolean {

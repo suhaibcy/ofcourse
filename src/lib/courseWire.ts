@@ -1,4 +1,4 @@
-import type { Block, Course, Lesson } from './course.ts'
+import type { Block, Lesson, TeachCard } from './course.ts'
 
 // The AI's JSON format has to be fully spelled out, so it can't use open-ended
 // maps like { a: 2, h: 1 }. It sends lists of { name, value } instead, and this
@@ -6,31 +6,46 @@ import type { Block, Course, Lesson } from './course.ts'
 // are always unique no matter what the AI wrote.
 export type NamedValue = { name: string; value: number }
 export type WireBlock = Record<string, unknown> & { type: Block['type']; conceptId: string }
-export type WireCourse = {
+export type WireLesson = {
+  title: string
+  intro: string
+  kind: 'learn' | 'quiz'
+  source: { photo: number; quote: string }
+  teach: TeachCard[]
+  blocks: WireBlock[]
+}
+export type WireUnit = { lessons: WireLesson[] }
+export type Outline = {
   title: string
   summary: string
   concepts: { id: string; name: string }[]
-  lessons: { title: string; intro: string; source: { photo: number; quote: string }; blocks: WireBlock[] }[]
+  units: { title: string; goal: string; conceptIds: string[] }[]
 }
 
 function toMap(list: unknown): Record<string, number> {
   return Object.fromEntries(((list ?? []) as NamedValue[]).map((item) => [item.name, item.value]))
 }
 
-export function fromWire(wire: WireCourse): Course {
-  const lessons: Lesson[] = wire.lessons.map((lesson, l) => ({
-    id: `l${l + 1}`,
-    title: lesson.title,
-    intro: lesson.intro,
-    source: lesson.source,
-    blocks: lesson.blocks.map((block, b) => {
-      const id = `l${l + 1}-b${b + 1}`
-      if (block.type === 'sandbox') return { ...block, id, target: toMap(block.target) } as Block
-      if (block.type === 'calc') return { ...block, id, values: toMap(block.values) } as Block
-      return { ...block, id } as Block
-    }),
-  }))
-  return { id: 'new', title: wire.title, summary: wire.summary, origin: 'generated', concepts: wire.concepts, lessons }
+// One unit's lessons, ready for the app. Unit numbers keep ids unique across the course.
+export function fromWireUnit(wire: WireUnit, unitTitle: string, unitNumber: number): Lesson[] {
+  return wire.lessons.map((lesson, l) => {
+    const lessonId = `u${unitNumber}-l${l + 1}`
+    return {
+      id: lessonId,
+      title: lesson.title,
+      intro: lesson.intro,
+      unit: unitTitle,
+      kind: lesson.kind,
+      source: lesson.source,
+      teach: lesson.kind === 'quiz' ? [] : lesson.teach,
+      blocks: lesson.blocks.map((block, b) => {
+        const id = `${lessonId}-b${b + 1}`
+        if (block.type === 'sandbox') return { ...block, id, target: toMap(block.target) } as Block
+        if (block.type === 'calc') return { ...block, id, values: toMap(block.values) } as Block
+        return { ...block, id } as Block
+      }),
+    }
+  })
 }
 
 // Keep only the points whose quote really appears in what the student said. An

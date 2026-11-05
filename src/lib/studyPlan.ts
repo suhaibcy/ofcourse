@@ -17,7 +17,7 @@ export function buildStudyPlan(examDate: string, today: string, topics: string[]
   const firstDay = addDays(exam, -count)
   return Array.from({ length: count }, (_, i) => {
     const date = toDateKey(addDays(firstDay, i))
-    if (i === count - 1) return { date, title: 'Review: take the course challenge', minutes }
+    if (i === count - 1) return { date, title: 'Review: take the course exam', minutes }
     const title = topics.length > 0 ? `Study: ${topics[i % topics.length]}` : 'Study session'
     return { date, title, minutes }
   })
