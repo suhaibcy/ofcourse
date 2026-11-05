@@ -71,7 +71,7 @@ Blocks, choosing what fits the subject:
 - order: 3 to 7 steps of a process, listed in the CORRECT order.
 - spot: a worked solution with exactly one line wrong; wrongLine counts from 0.
 - sort: 2 or 3 groups; bucket counts from 0.
-- calc: only for a numeric answer. Give a formula and its values; our code calculates the answer, so never state it.
+- calc: only when the answer is a number worked out from numbers, such as formula "b^2-4*a*c" with values for a, b, and c. Our code calculates the answer, so never state it. Never use calc for a word answer; use fill for that.
 - explain: 2 to 4 points a good spoken explanation should cover. Use at most one per unit.
 - voice: 1 to 4 important or hard-to-say words, each a single word of 2 to 12 letters, split into syllables that join back into exactly the word. Saying them unlocks a game where the learner's voice flies Hoot the owl through letter rings to spell the last word. Use once in the course's first unit if it fits.
 - catch: an arcade game. Falling items of at most 40 characters; good ones get caught and bad ones dodged. At least 3 good and 2 bad, each with a short "why".
@@ -79,7 +79,7 @@ Blocks, choosing what fits the subject:
 - flip: a memory game; 3 to 6 pairs with each side at most 40 characters.
 - fill: a sentence where each ___ is a blank, with answers listed in order and 1 to 3 believable wrong extras. No word may repeat.
 - code: only for coding topics. A small JavaScript exercise using console.log, with starter code to fix or finish, a working solution, and exactly what it should print. Our code runs the solution to check it.
-Vary the games: never use the same block type twice in a row, and favor games over plain questions.
+Vary the games: never use the same block type twice in a row, and favor games over plain questions. Every field must be filled in: no empty lists or empty formulas.
 
 Formulas may only use numbers, + - * / ^ ( ), the named variables, and sin cos tan sqrt log log2 log10 exp abs pi e.
 HONESTY RULE: Never reuse a problem from originalProblems, in teaching or in practice. Use new examples with different values and wording that teach the same method. This must never answer the learner's actual assignment.
