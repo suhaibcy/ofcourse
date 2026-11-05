@@ -57,9 +57,10 @@ function courseApi(env: Record<string, string>): Plugin {
   return {
     name: 'course-api',
     configureServer(server) {
-      process.env.AI_ENABLED = env.AI_ENABLED
-      process.env.MODEL_API_KEY = env.MODEL_API_KEY
-      process.env.AI_MODEL = env.AI_MODEL
+      // Only set what .env has: assigning a missing value would store the text "undefined".
+      for (const name of ['AI_ENABLED', 'MODEL_API_KEY', 'AI_MODEL']) {
+        if (env[name] !== undefined) process.env[name] = env[name]
+      }
       for (const route of ['status', 'course', 'explain', 'say']) {
         server.middlewares.use(`/api/${route}`, async (req, res) => {
           let body = ''

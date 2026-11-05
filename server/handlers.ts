@@ -171,6 +171,8 @@ async function verify(body: { course?: Course; reading?: Reading }): Promise<Res
     course = result.course
     flaggedCards = result.removed
   }
+  // A lesson with no activities left has nothing to practice, and it can be a filler the AI wrote.
+  course = { ...course, lessons: course.lessons.filter((lesson) => lesson.blocks.length > 0) }
   if (allBlocks(course).length < 3) return fail(422, "Hoot couldn't build a course it trusted from that. Try adding more of your notes.")
   const removedBlocks = new Set([...broken, ...copied, ...disputed]).size
   return { status: 200, json: { course: { ...course, checks: { checkedQuestions: questions.length, removedBlocks, flaggedCards } } } }

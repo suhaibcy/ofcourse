@@ -24,7 +24,7 @@ export const notesSchema = strict(noteFields)
 
 export const readingSchema = strict({
   topic: str,
-  subject: { type: 'string', enum: ['Math', 'Science', 'Reading & writing', 'Coding', 'History & social studies', 'Languages', 'Other'] },
+  subject: { type: 'string', enum: ['Math', 'Science', 'Reading & writing', 'Coding', 'History & social studies', 'Economics & business', 'Languages', 'Other'] },
   usedMaterials: bool,
   kit: strict({ ...noteFields, dates: list(strict({ title: str, date: str, kind: str })) }),
   concepts: list(strict({ name: str, quote: str, photo: num })),

@@ -104,6 +104,14 @@ test('verify removes copied homework, disputed answers, and flagged teaching', a
   assert.equal(sent[0].body.includes('correct'), false, 'the solver must not see the answers')
 })
 
+test('a filler lesson with no activities is dropped', async () => {
+  const course = await draftCourse([order, order, order], 'v4b')
+  course.lessons.push({ id: 'u1-l2', title: 'x', intro: 'placeholder', teach: [{ type: 'read', heading: 'x', body: 'x' }], blocks: [] })
+  replies = [{ issues: [] }]
+  const result = await handleRoute('course', 'POST', { action: 'verify', course, reading }, 'v4b')
+  assert.deepEqual((result.json as { course: Course }).course.lessons.map((l) => l.id), ['u1-l1'])
+})
+
 test('a course with too little left is refused, not shown', async () => {
   const course = await draftCourse([step('Only one', 0), step('And two', 0)], 'v5')
   replies = [{ answers: [{ id: 'u1-l1-b1#0', option: 1 }, { id: 'u1-l1-b2#0', option: 0 }] }, { issues: [] }]
